@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Buzz Host Companion - Door Checklist</title>
+  <title>Buzz HAC - Door Checklist</title>
   <style>
     :root{
       --bg:#0b1020;
@@ -11,186 +11,138 @@
       --line:#23305c;
       --text:#eef1ff;
       --muted:#9fb0ff;
+
       --btn:#1d4ed8;
       --btn2:#334155;
+      --danger:#be123c;
 
       --orange:#f7921c;
-      --orange2:#b85d00;
       --pink:#d91c5c;
-      --pink2:#9b0f3c;
-      --danger:#be123c;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: var(--bg);
-      color:var(--text);
-    }
-    header{
-      padding:16px 18px;
-      border-bottom:1px solid var(--line);
-      background:#0b1020f2;
-      position:sticky; top:0; z-index:10;
-      backdrop-filter: blur(8px);
-    }
-    h1{margin:0 0 6px 0; font-size:16px}
-    .sub{margin:0; font-size:12px; color:var(--muted)}
-    main{max-width:1200px; margin:0 auto; padding:16px; display:grid; gap:12px}
-    .grid{display:grid; gap:12px}
-    @media(min-width:950px){
-      .grid{ grid-template-columns: 430px 1fr; align-items:start; }
-    }
-    .card{
-      background: linear-gradient(180deg, #121a33, #0f1730);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-    }
-    .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between}
-    .small{font-size:12px; color:var(--muted)}
-    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
-    input, select{
-      width:100%;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid #263468;
-      background:#0b1330;
-      color:var(--text);
-      outline:none;
-    }
-    .whoRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
-    .whoBtn{
-      padding:10px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:900;
-      border:1px solid rgba(255,255,255,0.15);
-      cursor:pointer;
-      user-select:none;
-    }
-    .whoBtn.orange{background: var(--orange); color:#0b1020; border-color: var(--orange2)}
-    .whoBtn.pink{background: var(--pink); color:white; border-color: var(--pink2)}
-    .whoBtn.active{
-      outline: 3px solid rgba(255,255,255,0.22);
-      transform: translateY(-1px);
-    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
+    header{padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#0b1020f2;backdrop-filter:blur(8px);z-index:10}
+    h1{margin:0 0 4px 0;font-size:16px}
+    .sub{margin:0;font-size:12px;color:var(--muted)}
+    main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:12px}
+    @media(min-width:980px){ main{grid-template-columns:440px 1fr;align-items:start} }
+    .card{background:linear-gradient(180deg,#121a33,#0f1730);border:1px solid var(--line);border-radius:14px;padding:14px}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    input,select{width:100%;padding:10px;border-radius:12px;border:1px solid #263468;background:#0b1330;color:var(--text);outline:none}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1 1 160px}
 
-    .bigBtns{display:grid; gap:10px; margin-top:12px}
-    .bigBtn{
-      padding:14px 12px;
-      border-radius:14px;
-      border:1px solid #2a3a72;
-      background: var(--btn);
-      color:white;
-      font-weight:900;
-      font-size:16px;
-      cursor:pointer;
-      text-align:left;
-    }
-    .bigBtn.secondary{ background:#0b1330; border:1px solid #2a3a72; color:var(--text); }
+    .who{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .who button{border:0;padding:10px 12px;border-radius:999px;cursor:pointer;font-weight:900}
+    .who .o{background:var(--orange);color:#0b1020}
+    .who .p{background:var(--pink);color:white}
+    .who .active{outline:3px solid rgba(255,255,255,.22)}
 
-    .tabs{display:flex; gap:8px; flex-wrap:wrap}
-    .tab{
-      border:1px solid var(--line);
-      background:#0b1330;
-      color:var(--muted);
-      padding:8px 10px;
-      border-radius:999px;
-      cursor:pointer;
-      font-weight:900;
-      font-size:12px;
-    }
-    .tab.active{
-      background: var(--btn2);
-      color: var(--text);
-      border-color:#3b4a86;
-    }
+    .bigBtns{display:grid;gap:10px;margin-top:12px}
+    .bigBtns button{border:1px solid #2a3a72;border-radius:14px;padding:14px 12px;cursor:pointer;font-weight:900;font-size:16px;text-align:left}
+    .primary{background:var(--btn);color:white}
+    .secondary{background:#0b1330;color:var(--text)}
 
-    table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:12px}
-    th, td{
-      padding:10px;
-      border-bottom:1px solid var(--line);
-      font-size:13px;
-      vertical-align:top;
-    }
-    th{color:var(--muted); text-align:left; font-weight:900; font-size:12px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .tab{border:1px solid var(--line);background:#0b1330;color:var(--muted);padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:900;font-size:12px}
+    .tab.active{background:var(--btn2);color:var(--text)}
+
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .small{font-size:12px;color:var(--muted)}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--line);font-size:11px;color:var(--muted);background:#0b1330}
+
+    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+    th{color:var(--muted);text-align:left;font-weight:900;font-size:12px}
     tr:hover td{background:#0b1330}
 
-    .checks{display:flex; gap:14px; flex-wrap:wrap}
-    .checkItem{display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px}
-    input[type="checkbox"]{width:18px; height:18px}
+    .btn{border:0;padding:9px 10px;border-radius:12px;cursor:pointer;font-weight:900;font-size:12px;background:var(--btn2);color:white}
+    .btn.danger{background:var(--danger)}
+    .btn.link{background:transparent;border:1px dashed var(--line);color:var(--muted)}
 
-    .badge{
-      display:inline-block;
-      padding:4px 8px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      font-size:11px;
-      color:var(--muted);
-      background:#0b1330;
-    }
-
-    button{
-      border:0;
-      padding:10px 10px;
-      border-radius:12px;
-      cursor:pointer;
-      color:white;
-      background: var(--btn2);
-      font-weight:900;
-      font-size:12px;
-    }
-    button.primary{background:var(--btn)}
-    button.danger{background:var(--danger)}
-    details{
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px;
-      background:#0b1330;
-      margin-top:12px;
-    }
-    summary{
-      cursor:pointer;
-      font-weight:900;
-      color:var(--text);
-      list-style:none;
-    }
+    /* Modal */
+    .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+    .modal{width:min(820px,100%);background:#0b1330;border:1px solid #2a3a72;border-radius:16px;padding:14px}
+    .modalHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .modalHead h2{margin:0;font-size:16px}
+    .checks{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+    .checkItem{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+    input[type="checkbox"]{width:18px;height:18px}
+    details{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
+    summary{cursor:pointer;font-weight:900;list-style:none}
     summary::-webkit-details-marker{display:none}
-    .hint{font-size:12px; color:var(--muted); margin-top:10px; line-height:1.35}
+    .err{color:#ffb4bf;font-size:12px;margin-top:8px;display:none}
+    .pillRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .pill{padding:9px 10px;border-radius:999px;border:1px solid var(--line);background:#0b1330;color:var(--text);cursor:pointer;font-weight:900;font-size:12px}
+    .pill.active{background:var(--btn2);border-color:#3b4a86}
   </style>
 </head>
 <body>
 <header>
-  <h1>Buzz Host Companion - Door Checklist</h1>
-  <p class="sub">Quick add + ticks for sticker, app, booklet • light optional ticks for brand-new Buzzers • export CSV</p>
+  <h1>Buzz HAC - Door Checklist</h1>
+  <p class="sub">Buttons + pop-up checklist • shared Google Sheet backend • month + captured-by remembered per device</p>
 </header>
 
-<main class="grid">
-  <!-- LEFT -->
+<main>
+  <!-- LEFT: entry -->
   <section class="card">
-    <div class="toolbar">
-      <div class="badge" id="activeBadge">View: New to Buzz</div>
-      <div class="small" id="countLabel"></div>
+    <div class="row">
+      <div>
+        <label>Buzz month</label>
+        <input id="month" placeholder="February 2026" />
+      </div>
+      <div>
+        <label>Quick filter</label>
+        <select id="quickFilter">
+          <option value="all">All</option>
+          <option value="unpaid">Unpaid (payment_taken = false/blank)</option>
+          <option value="paypal_needs_receipt">PayPal - needs receipt</option>
+          <option value="not_on_app">Not on app</option>
+        </select>
+      </div>
     </div>
 
-    <label>Buzz month (saved into each row + CSV)</label>
-    <input id="month" placeholder="February 2026" />
-
     <label>Captured by</label>
-    <div class="whoRow" id="whoRow"></div>
+    <div class="who" id="who"></div>
     <div class="small" id="whoLabel" style="margin-top:6px"></div>
 
-    <label style="margin-top:14px">Name (required)</label>
-    <input id="name" placeholder="First + last name" />
-
-    <label>Business (optional)</label>
-    <input id="business" placeholder="Business / role" />
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>Name (required)</label>
+        <input id="name" placeholder="First + last name" />
+      </div>
+      <div>
+        <label>Business (optional)</label>
+        <input id="business" placeholder="Business / role" />
+      </div>
+    </div>
 
     <details>
-      <summary>Optional (only if brand new to Buzz)</summary>
+      <summary>Optional extras (quick, not a questionnaire)</summary>
 
-      <label>How did they find out about Buzz?</label>
+      <label>Reason here</label>
+      <select id="reasonHere">
+        <option value="">-</option>
+        <option>Meet new people</option>
+        <option>Find referrals / clients</option>
+        <option>Build local connections</option>
+        <option>Learn / get ideas</option>
+        <option>Promote business</option>
+        <option>Other</option>
+      </select>
+
+      <label>Looking for</label>
+      <select id="lookingFor">
+        <option value="">-</option>
+        <option>Clients</option>
+        <option>Referrals</option>
+        <option>Collaborations</option>
+        <option>Suppliers</option>
+        <option>Introductions</option>
+        <option>All types of connections</option>
+      </select>
+
+      <label>Found out about Buzz</label>
       <select id="foundOut">
         <option value="">-</option>
         <option>Referral (person)</option>
@@ -201,7 +153,7 @@
         <option>Other</option>
       </select>
 
-      <label>Do they do other networking?</label>
+      <label>Other networking</label>
       <select id="otherNetworking">
         <option value="">-</option>
         <option>Face-to-face (regular)</option>
@@ -210,248 +162,244 @@
         <option>Ad hoc / occasional</option>
         <option>No</option>
       </select>
-
-      <label>Main reason for attending today?</label>
-      <select id="reason">
-        <option value="">-</option>
-        <option>Meet new people</option>
-        <option>Find referrals / clients</option>
-        <option>Build local connections</option>
-        <option>Learn / get ideas</option>
-        <option>Promote business</option>
-        <option>Other</option>
-      </select>
-
-      <div class="hint">
-        Leave these blank if it feels like a questionnaire. They’re optional.
-      </div>
     </details>
 
     <div class="bigBtns">
-      <button class="bigBtn" onclick="addTo('new_to_buzz')">+ New to Buzz (brand new)</button>
-      <button class="bigBtn secondary" onclick="addTo('new_to_mhbuzz')">+ New to MHBuzz (new here)</button>
+      <button class="primary" id="btnNewBuzz">+ New to Buzz</button>
+      <button class="secondary" id="btnNewMHBuzz">+ New to MHBuzz</button>
     </div>
 
-    <div class="hint">
-      After adding, use the ticks on the right to track:
-      sticker, app help, and 101 booklet issued.
+    <div class="row" style="margin-top:12px">
+      <button class="btn link" id="refreshBtn">Refresh</button>
+      <button class="btn" id="saveDefaultsBtn">Save month + captured-by</button>
+      <button class="btn danger" id="clearDefaultsBtn">Clear saved defaults</button>
     </div>
 
-    <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
-      <button class="primary" onclick="exportCSV()">Export CSV</button>
-      <button class="danger" onclick="resetAll()">Reset all</button>
+    <div class="err" id="errBox"></div>
+
+    <div class="small" style="margin-top:10px">
+      Notes:
+      <br>• Month + Captured-by are saved per device to reduce typing.
+      <br>• “Checklist” pop-up includes PayPal/Eventbrite + receipt + app confirmation.
     </div>
   </section>
 
-  <!-- RIGHT -->
+  <!-- RIGHT: list -->
   <section class="card">
     <div class="toolbar">
-      <div class="tabs" id="tabs"></div>
-      <input id="search" placeholder="Search name/business/month/captured by" style="max-width:360px" />
+      <div class="tabs">
+        <button class="tab active" id="tabBuzz">New to Buzz</button>
+        <button class="tab" id="tabMHBuzz">New to MHBuzz</button>
+      </div>
+      <input id="search" placeholder="Search name/business" style="max-width:280px" />
+    </div>
+
+    <div class="small" style="margin-top:8px">
+      Current view is filtered by month (if set) + tab + quick filter. Tap Checklist to update.
     </div>
 
     <div style="margin-top:10px; overflow:auto">
       <table>
         <thead>
           <tr>
-            <th style="min-width:180px">Name</th>
-            <th style="min-width:180px">Business</th>
+            <th style="min-width:170px">Name</th>
+            <th style="min-width:170px">Business</th>
             <th style="min-width:120px">Month</th>
-            <th style="min-width:110px">By</th>
-            <th style="min-width:520px">Checklist ticks</th>
-            <th style="min-width:260px">New-to-Buzz extras</th>
-            <th style="min-width:110px">Actions</th>
+            <th style="min-width:85px">By</th>
+            <th style="min-width:200px">Payment</th>
+            <th style="min-width:200px">Quick view</th>
+            <th style="min-width:120px">Actions</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
-
-    <div class="small" style="margin-top:10px">
-      CSV includes everything (month, captured_by, list type, ticks, and optional extra fields).
-    </div>
   </section>
 </main>
 
+<!-- Modal -->
+<div class="modalBack" id="modalBack">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <h2 id="modalTitle">Checklist</h2>
+        <div class="small" id="modalMeta"></div>
+      </div>
+      <button class="btn" id="closeModal">Close</button>
+    </div>
+
+    <div class="checks">
+      <label class="checkItem"><input type="checkbox" id="tSticker"> Sticker given</label>
+      <label class="checkItem"><input type="checkbox" id="tAppOn"> Fully on the app</label>
+      <label class="checkItem"><input type="checkbox" id="tHelp"> Needs help with the app</label>
+      <label class="checkItem"><input type="checkbox" id="tBooklet"> 101 booklet issued</label>
+      <label class="checkItem"><input type="checkbox" id="tAddedOnApp"> Added on Buzz app</label>
+    </div>
+
+    <details open>
+      <summary>Payment</summary>
+
+      <div class="pillRow">
+        <button class="pill" id="payEventbrite">Eventbrite</button>
+        <button class="pill" id="payPaypal">PayPal</button>
+      </div>
+
+      <div class="checks" style="margin-top:10px">
+        <label class="checkItem"><input type="checkbox" id="tPaid"> Payment taken</label>
+        <label class="checkItem"><input type="checkbox" id="tPaypalReceipt"> PayPal receipt sent</label>
+      </div>
+
+      <div class="small" style="margin-top:8px">
+        PayPal flow: set PayPal → tick Payment taken → tick Receipt sent.
+      </div>
+    </details>
+
+    <details>
+      <summary>Extras</summary>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label>Reason here</label>
+          <select id="mReasonHere">
+            <option value="">-</option>
+            <option>Meet new people</option>
+            <option>Find referrals / clients</option>
+            <option>Build local connections</option>
+            <option>Learn / get ideas</option>
+            <option>Promote business</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Looking for</label>
+          <select id="mLookingFor">
+            <option value="">-</option>
+            <option>Clients</option>
+            <option>Referrals</option>
+            <option>Collaborations</option>
+            <option>Suppliers</option>
+            <option>Introductions</option>
+            <option>All types of connections</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Found out about Buzz</label>
+          <select id="mFoundOut">
+            <option value="">-</option>
+            <option>Referral (person)</option>
+            <option>LinkedIn</option>
+            <option>Facebook</option>
+            <option>Google / search</option>
+            <option>Poster / flyer</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label>Other networking</label>
+          <select id="mOtherNetworking">
+            <option value="">-</option>
+            <option>Face-to-face (regular)</option>
+            <option>Online</option>
+            <option>Membership group</option>
+            <option>Ad hoc / occasional</option>
+            <option>No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="small" style="margin-top:8px">
+        These are optional - leave blank if you haven’t asked.
+      </div>
+    </details>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="saveModal">Save</button>
+    </div>
+
+    <div class="err" id="modalErr"></div>
+  </div>
+</div>
+
 <script>
-  const STORE_KEY = "buzz_host_door_checklist_v0_3";
+  // === PASTE YOUR VALUES HERE ===
+  const WEB_APP_URL = "PASTE_YOUR_WEB_APP_URL_ENDING_IN_EXEC";
+  const TOKEN = "PASTE_YOUR_TOKEN_FROM_CODE_GS";
 
-  const LISTS = [
-    { key: "new_to_buzz",   label: "New to Buzz" },
-    { key: "new_to_mhbuzz", label: "New to MHBuzz" }
-  ];
-
+  // === SETTINGS ===
+  const DEFAULTS_KEY = "buzz_hac_defaults_v1";
   const CAPTURERS = [
-    { key: "Chris",  label: "Chris",  colour: "orange" },
-    { key: "Joe",    label: "Joe",    colour: "orange" },
-    { key: "James",  label: "James",  colour: "orange" },
-    { key: "Adrian", label: "Adrian", colour: "pink" }
+    { key: "Chris", cls: "o" },
+    { key: "Joe", cls: "o" },
+    { key: "James", cls: "o" },
+    { key: "Adrian", cls: "p" }
   ];
+  const LISTS = { buzz: "New to Buzz", mhbuzz: "New to MHBuzz" };
 
-  let ACTIVE_LIST = "new_to_buzz";
+  let activeTab = "buzz";
+  let capturedBy = "";
+  let rowsCache = [];
+  let modalRow = null;
+  let paymentTypeLocal = ""; // for pill highlighting
 
   const els = {
     month: document.getElementById("month"),
-    whoRow: document.getElementById("whoRow"),
+    quickFilter: document.getElementById("quickFilter"),
+    who: document.getElementById("who"),
     whoLabel: document.getElementById("whoLabel"),
     name: document.getElementById("name"),
     business: document.getElementById("business"),
-
+    reasonHere: document.getElementById("reasonHere"),
+    lookingFor: document.getElementById("lookingFor"),
     foundOut: document.getElementById("foundOut"),
     otherNetworking: document.getElementById("otherNetworking"),
-    reason: document.getElementById("reason"),
 
-    tabs: document.getElementById("tabs"),
+    btnNewBuzz: document.getElementById("btnNewBuzz"),
+    btnNewMHBuzz: document.getElementById("btnNewMHBuzz"),
+
+    tabBuzz: document.getElementById("tabBuzz"),
+    tabMHBuzz: document.getElementById("tabMHBuzz"),
     tbody: document.getElementById("tbody"),
     search: document.getElementById("search"),
 
-    activeBadge: document.getElementById("activeBadge"),
-    countLabel: document.getElementById("countLabel"),
+    refreshBtn: document.getElementById("refreshBtn"),
+    saveDefaultsBtn: document.getElementById("saveDefaultsBtn"),
+    clearDefaultsBtn: document.getElementById("clearDefaultsBtn"),
+
+    errBox: document.getElementById("errBox"),
+
+    // modal
+    modalBack: document.getElementById("modalBack"),
+    closeModal: document.getElementById("closeModal"),
+    modalTitle: document.getElementById("modalTitle"),
+    modalMeta: document.getElementById("modalMeta"),
+    tSticker: document.getElementById("tSticker"),
+    tAppOn: document.getElementById("tAppOn"),
+    tHelp: document.getElementById("tHelp"),
+    tBooklet: document.getElementById("tBooklet"),
+    tAddedOnApp: document.getElementById("tAddedOnApp"),
+
+    payEventbrite: document.getElementById("payEventbrite"),
+    payPaypal: document.getElementById("payPaypal"),
+    tPaid: document.getElementById("tPaid"),
+    tPaypalReceipt: document.getElementById("tPaypalReceipt"),
+
+    mReasonHere: document.getElementById("mReasonHere"),
+    mLookingFor: document.getElementById("mLookingFor"),
+    mFoundOut: document.getElementById("mFoundOut"),
+    mOtherNetworking: document.getElementById("mOtherNetworking"),
+
+    saveModal: document.getElementById("saveModal"),
+    modalErr: document.getElementById("modalErr"),
   };
 
   function nowISO(){ return new Date().toISOString(); }
   function clean(s){ return (s || "").trim(); }
-
-  function initLists(){
-    const lists = {};
-    for(const l of LISTS) lists[l.key] = [];
-    return lists;
-  }
-
-  function load(){
-    try{
-      const raw = localStorage.getItem(STORE_KEY);
-      if(!raw) return { lists: initLists(), settings: { month: "", capturedBy: "" } };
-      const parsed = JSON.parse(raw);
-
-      if(!parsed.lists) parsed.lists = initLists();
-      for(const l of LISTS){
-        if(!Array.isArray(parsed.lists[l.key])) parsed.lists[l.key] = [];
-      }
-
-      if(!parsed.settings) parsed.settings = { month: "", capturedBy: "" };
-      if(typeof parsed.settings.month !== "string") parsed.settings.month = "";
-      if(typeof parsed.settings.capturedBy !== "string") parsed.settings.capturedBy = "";
-
-      return parsed;
-    }catch(e){
-      return { lists: initLists(), settings: { month: "", capturedBy: "" } };
-    }
-  }
-
-  function save(state){
-    localStorage.setItem(STORE_KEY, JSON.stringify(state));
-  }
-
-  function makeId(){
-    return "p_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
-  }
-
-  function setActiveList(key){
-    ACTIVE_LIST = key;
-    const label = LISTS.find(l => l.key === key)?.label || key;
-    els.activeBadge.textContent = `View: ${label}`;
-    renderTabs();
-    render();
-  }
-
-  function setCapturedBy(name){
-    const state = load();
-    state.settings.capturedBy = name;
-    save(state);
-    renderWho();
-    render();
-  }
-
-  function setMonth(value){
-    const state = load();
-    state.settings.month = value;
-    save(state);
-    render();
-  }
-
-  function renderWho(){
-    const state = load();
-    const active = state.settings.capturedBy;
-
-    els.whoRow.innerHTML = CAPTURERS.map(p => {
-      const isActive = p.key === active ? "active" : "";
-      return `<button class="whoBtn ${p.colour} ${isActive}" onclick="setCapturedBy('${p.key}')">${p.label}</button>`;
-    }).join("");
-
-    els.whoLabel.textContent = active ? `Current: ${active}` : "Current: (not selected)";
-  }
-
-  function renderTabs(){
-    els.tabs.innerHTML = LISTS.map(l => {
-      const cls = l.key === ACTIVE_LIST ? "tab active" : "tab";
-      return `<button class="${cls}" onclick="setActiveList('${l.key}')">${l.label}</button>`;
-    }).join("");
-  }
-
-  function addTo(listKey){
-    const state = load();
-
-    const month = clean(els.month.value);
-    const capturedBy = state.settings.capturedBy;
-
-    const name = clean(els.name.value);
-    const business = clean(els.business.value);
-
-    if(!month){
-      alert("Buzz month is required (e.g. February 2026).");
-      els.month.focus();
-      return;
-    }
-    if(!capturedBy){
-      alert("Select who is capturing (Chris / Joe / James / Adrian).");
-      return;
-    }
-    if(!name){
-      alert("Name is required.");
-      els.name.focus();
-      return;
-    }
-
-    state.settings.month = month;
-
-    // Only attach extra fields if New to Buzz, and only if chosen
-    const extras = {
-      found_out: listKey === "new_to_buzz" ? clean(els.foundOut.value) : "",
-      other_networking: listKey === "new_to_buzz" ? clean(els.otherNetworking.value) : "",
-      reason: listKey === "new_to_buzz" ? clean(els.reason.value) : ""
-    };
-
-    const row = {
-      id: makeId(),
-      listKey,
-      month,
-      capturedBy,
-      name,
-      business,
-      ticks: {
-        sticker_given: false,
-        app_fully_on: false,
-        app_needs_help: false,
-        app_further_help: false,
-        booklet_101_issued: false
-      },
-      extras,
-      createdAt: nowISO()
-    };
-
-    state.lists[listKey].push(row);
-    save(state);
-
-    // Quick-entry: clear name, keep business (optional), keep extras (optional)
-    els.name.value = "";
-    els.name.focus();
-
-    // Switch to list so new entry appears immediately
-    setActiveList(listKey);
-  }
-
-  function escapeHtml(v){
+  function showErr(el, msg){ el.style.display = msg ? "block" : "none"; el.textContent = msg || ""; }
+  function makeId(){ return "p_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
+  function esc(v){
     return String(v ?? "")
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
@@ -459,203 +407,303 @@
       .replaceAll('"',"&quot;")
       .replaceAll("'","&#039;");
   }
-
-  function matchesSearch(row, q){
-    if(!q) return true;
-    const hay = [
-      row.name, row.business, row.month, row.capturedBy,
-      row.extras?.found_out, row.extras?.other_networking, row.extras?.reason
-    ].join(" ").toLowerCase();
-    return hay.includes(q.toLowerCase());
+  function escAttr(v){ return String(v ?? "").replaceAll("'","&#039;").replaceAll('"',"&quot;"); }
+  function toBool(v){
+    if (v === true) return true;
+    const s = String(v).toLowerCase().trim();
+    return s === "true" || s === "yes" || s === "1";
   }
 
-  function render(){
-    const state = load();
+  function saveDefaults(){
+    const month = clean(els.month.value);
+    const data = { month, capturedBy };
+    localStorage.setItem(DEFAULTS_KEY, JSON.stringify(data));
+  }
+  function loadDefaults(){
+    try{
+      const raw = localStorage.getItem(DEFAULTS_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      if(data.month) els.month.value = data.month;
+      if(data.capturedBy) capturedBy = data.capturedBy;
+    }catch{}
+  }
+  function clearDefaults(){
+    localStorage.removeItem(DEFAULTS_KEY);
+    els.month.value = "";
+    capturedBy = "";
+    renderCapturers();
+  }
 
-    // sync month input with saved setting
-    if(els.month.value !== state.settings.month) els.month.value = state.settings.month;
+  function renderCapturers(){
+    els.who.innerHTML = CAPTURERS.map(p => {
+      const active = (p.key === capturedBy) ? "active" : "";
+      return `<button class="${p.cls} ${active}" onclick="setCapturedBy('${p.key}')">${p.key}</button>`;
+    }).join("");
+    els.whoLabel.textContent = capturedBy ? `Current: ${capturedBy}` : "Current: (not selected)";
+  }
+  window.setCapturedBy = function(name){
+    capturedBy = name;
+    renderCapturers();
+  };
 
-    const list = state.lists[ACTIVE_LIST] || [];
-    els.countLabel.textContent = `${list.length} in list`;
+  function setTab(tab){
+    activeTab = tab;
+    els.tabBuzz.classList.toggle("active", tab === "buzz");
+    els.tabMHBuzz.classList.toggle("active", tab === "mhbuzz");
+    loadRows();
+  }
+  function currentListLabel(){
+    return activeTab === "buzz" ? LISTS.buzz : LISTS.mhbuzz;
+  }
 
-    const q = clean(els.search.value);
-    const filtered = list
-      .filter(r => matchesSearch(r, q))
+  async function apiGetRows(month, listLabel){
+    const url = new URL(WEB_APP_URL);
+    if (month) url.searchParams.set("month", month);
+    if (listLabel) url.searchParams.set("list", listLabel);
+    const res = await fetch(url.toString(), { method: "GET" });
+    return await res.json();
+  }
+  async function apiPost(payload){
+    const res = await fetch(WEB_APP_URL, {
+      method: "POST",
+      headers: { "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
+
+  function passesQuickFilter(r){
+    const f = els.quickFilter.value;
+
+    const paymentTaken = toBool(r.payment_taken);
+    const pType = String(r.payment_type || "");
+
+    if(f === "unpaid"){
+      return paymentTaken === false; // blank/false = unpaid
+    }
+    if(f === "paypal_needs_receipt"){
+      const isPayPal = pType.toLowerCase().includes("paypal");
+      const receipt = toBool(r.paypal_receipt_sent);
+      return isPayPal && !receipt;
+    }
+    if(f === "not_on_app"){
+      return !toBool(r.added_on_buzz_app) && !toBool(r.app_fully_on);
+    }
+    return true;
+  }
+
+  async function loadRows(){
+    showErr(els.errBox, "");
+    const month = clean(els.month.value);
+    const list = currentListLabel();
+
+    try{
+      const data = await apiGetRows(month, list);
+      if(!data.ok) throw new Error(data.error || "Failed to load");
+      rowsCache = (data.rows || []).filter(passesQuickFilter);
+      renderTable();
+    }catch(err){
+      showErr(els.errBox, `Load error: ${String(err)}`);
+    }
+  }
+
+  function renderTable(){
+    const q = clean(els.search.value).toLowerCase();
+
+    const list = rowsCache
+      .filter(r => {
+        if(!q) return true;
+        const hay = `${r.name||""} ${r.business||""}`.toLowerCase();
+        return hay.includes(q);
+      })
       .slice()
-      .sort((a,b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+      .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
 
-    els.tbody.innerHTML = filtered.map(r => {
-      const ex = r.extras || {};
-      const extrasText =
-        r.listKey !== "new_to_buzz"
-          ? `<span class="small">-</span>`
-          : `
-            <div class="small"><strong>Found out:</strong> ${ex.found_out ? escapeHtml(ex.found_out) : "-"}</div>
-            <div class="small"><strong>Networking:</strong> ${ex.other_networking ? escapeHtml(ex.other_networking) : "-"}</div>
-            <div class="small"><strong>Reason:</strong> ${ex.reason ? escapeHtml(ex.reason) : "-"}</div>
-          `;
+    els.tbody.innerHTML = list.map(r => {
+      const quick = [];
+      if (toBool(r.sticker_given)) quick.push("Sticker");
+      if (toBool(r.booklet_101_issued)) quick.push("101");
+      if (toBool(r.added_on_buzz_app) || toBool(r.app_fully_on)) quick.push("On app");
+      if (toBool(r.app_needs_help)) quick.push("App help");
+
+      const pType = String(r.payment_type || "");
+      const pTaken = toBool(r.payment_taken) ? "taken" : "not taken";
+      const receipt = toBool(r.paypal_receipt_sent) ? "receipt sent" : "receipt not sent";
+
+      let payText = "-";
+      if(pType){
+        payText = `${pType} • ${pTaken}`;
+        if(pType.toLowerCase().includes("paypal")) payText += ` • ${receipt}`;
+      } else {
+        payText = pTaken === "taken" ? `Payment taken` : `Unpaid`;
+      }
 
       return `
         <tr>
-          <td><strong>${escapeHtml(r.name)}</strong></td>
-          <td>${r.business ? escapeHtml(r.business) : `<span class="small">-</span>`}</td>
-          <td>${escapeHtml(r.month)}</td>
-          <td>${escapeHtml(r.capturedBy)}</td>
-          <td>
-            <div class="checks">
-              <label class="checkItem">
-                <input type="checkbox" ${r.ticks.sticker_given ? "checked" : ""} onchange="toggleTick('${r.id}','sticker_given', this.checked)" />
-                Sticker given
-              </label>
-              <label class="checkItem">
-                <input type="checkbox" ${r.ticks.app_fully_on ? "checked" : ""} onchange="toggleTick('${r.id}','app_fully_on', this.checked)" />
-                Fully on the app
-              </label>
-              <label class="checkItem">
-                <input type="checkbox" ${r.ticks.app_needs_help ? "checked" : ""} onchange="toggleTick('${r.id}','app_needs_help', this.checked)" />
-                Needs help with the app
-              </label>
-              <label class="checkItem">
-                <input type="checkbox" ${r.ticks.app_further_help ? "checked" : ""} onchange="toggleTick('${r.id}','app_further_help', this.checked)" />
-                Further help needed
-              </label>
-              <label class="checkItem">
-                <input type="checkbox" ${r.ticks.booklet_101_issued ? "checked" : ""} onchange="toggleTick('${r.id}','booklet_101_issued', this.checked)" />
-                101 booklet issued
-              </label>
-            </div>
-          </td>
-          <td>${extrasText}</td>
-          <td><button class="danger" onclick="removeRow('${r.id}')">Delete</button></td>
+          <td><strong>${esc(r.name)}</strong></td>
+          <td>${r.business ? esc(r.business) : `<span class="small">-</span>`}</td>
+          <td>${esc(r.month||"")}</td>
+          <td>${esc(r.captured_by||"")}</td>
+          <td class="small">${esc(payText)}</td>
+          <td class="small">${quick.length ? esc(quick.join(" • ")) : "-"}</td>
+          <td><button class="btn link" onclick="openChecklist('${escAttr(r.id)}')">Checklist</button></td>
         </tr>
       `;
-    }).join("");
+    }).join("") || `<tr><td colspan="7" class="small">No rows found.</td></tr>`;
+  }
 
-    if(filtered.length === 0){
-      els.tbody.innerHTML = `<tr><td colspan="7" class="small">No items in this view.</td></tr>`;
+  async function addRow(listLabel){
+    showErr(els.errBox, "");
+
+    const month = clean(els.month.value);
+    const name = clean(els.name.value);
+    const business = clean(els.business.value);
+
+    if(!month){ showErr(els.errBox, "Buzz month is required (e.g. February 2026)."); return; }
+    if(!capturedBy){ showErr(els.errBox, "Select who is capturing (Chris/Joe/James/Adrian)."); return; }
+    if(!name){ showErr(els.errBox, "Name is required."); return; }
+
+    // Map to your exact schema (including spaced headers)
+    const row = {
+      id: makeId(),
+      createdAt: nowISO(),
+      month,
+      captured_by: capturedBy,
+      list: listLabel,
+      name,
+      business,
+
+      "Reason here": clean(els.reasonHere.value),
+      "Looking for": clean(els.lookingFor.value),
+
+      sticker_given: false,
+      app_fully_on: false,
+      app_needs_help: false,
+      booklet_101_issued: false,
+      found_out: clean(els.foundOut.value),
+      other_networking: clean(els.otherNetworking.value),
+
+      payment_type: "",
+      payment_taken: false,
+      paypal_receipt_sent: false,
+      added_on_buzz_app: false
+    };
+
+    try{
+      const data = await apiPost({ token: TOKEN, action: "add", row });
+      if(!data.ok) throw new Error(data.error || "Add failed");
+
+      // Save defaults so next add is quicker
+      saveDefaults();
+
+      // Clear name for quick entry
+      els.name.value = "";
+      els.name.focus();
+
+      // Switch tab to match list, then reload
+      setTab(listLabel === "New to Buzz" ? "buzz" : "mhbuzz");
+    }catch(err){
+      showErr(els.errBox, `Add error: ${String(err)}`);
     }
   }
 
-  function findRowById(state, id){
-    const list = state.lists[ACTIVE_LIST] || [];
-    return list.find(r => r.id === id) || null;
+  function setPaymentPills(type){
+    paymentTypeLocal = type;
+    els.payEventbrite.classList.toggle("active", type === "Eventbrite");
+    els.payPaypal.classList.toggle("active", type === "PayPal");
   }
 
-  function toggleTick(id, tickKey, value){
-    const state = load();
-    const row = findRowById(state, id);
+  window.openChecklist = function(id){
+    const row = rowsCache.find(r => String(r.id) === String(id));
     if(!row) return;
-    row.ticks[tickKey] = !!value;
-    save(state);
-    render();
-  }
 
-  function removeRow(id){
-    const ok = confirm("Delete this row?");
-    if(!ok) return;
-    const state = load();
-    state.lists[ACTIVE_LIST] = (state.lists[ACTIVE_LIST] || []).filter(r => r.id !== id);
-    save(state);
-    render();
-  }
+    modalRow = row;
+    showErr(els.modalErr, "");
 
-  function exportCSV(){
-    const state = load();
+    els.modalTitle.textContent = `Checklist - ${row.name || ""}`;
+    els.modalMeta.textContent = `${row.list || ""} • ${row.month || ""} • by ${row.captured_by || ""}`;
 
-    const headers = [
-      "list",
-      "month",
-      "captured_by",
-      "name",
-      "business",
-      "sticker_given",
-      "app_fully_on",
-      "app_needs_help",
-      "app_further_help",
-      "booklet_101_issued",
-      "found_out",
-      "other_networking",
-      "reason",
-      "createdAt"
-    ];
+    els.tSticker.checked = toBool(row.sticker_given);
+    els.tAppOn.checked = toBool(row.app_fully_on);
+    els.tHelp.checked = toBool(row.app_needs_help);
+    els.tBooklet.checked = toBool(row.booklet_101_issued);
+    els.tAddedOnApp.checked = toBool(row.added_on_buzz_app);
 
-    const rows = [];
-    for(const l of LISTS){
-      for(const r of (state.lists[l.key] || [])){
-        rows.push([
-          l.label,
-          r.month || "",
-          r.capturedBy || "",
-          r.name || "",
-          r.business || "",
-          r.ticks?.sticker_given ? "TRUE" : "FALSE",
-          r.ticks?.app_fully_on ? "TRUE" : "FALSE",
-          r.ticks?.app_needs_help ? "TRUE" : "FALSE",
-          r.ticks?.app_further_help ? "TRUE" : "FALSE",
-          r.ticks?.booklet_101_issued ? "TRUE" : "FALSE",
-          r.extras?.found_out || "",
-          r.extras?.other_networking || "",
-          r.extras?.reason || "",
-          r.createdAt || ""
-        ]);
-      }
+    const pType = String(row.payment_type || "");
+    setPaymentPills(pType === "Eventbrite" ? "Eventbrite" : (pType === "PayPal" ? "PayPal" : ""));
+    els.tPaid.checked = toBool(row.payment_taken);
+    els.tPaypalReceipt.checked = toBool(row.paypal_receipt_sent);
+
+    // Extras - exact headers
+    els.mReasonHere.value = row["Reason here"] || "";
+    els.mLookingFor.value = row["Looking for"] || "";
+    els.mFoundOut.value = row.found_out || "";
+    els.mOtherNetworking.value = row.other_networking || "";
+
+    els.modalBack.style.display = "flex";
+  };
+
+  async function saveModal(){
+    if(!modalRow) return;
+
+    const patch = {
+      sticker_given: els.tSticker.checked,
+      app_fully_on: els.tAppOn.checked,
+      app_needs_help: els.tHelp.checked,
+      booklet_101_issued: els.tBooklet.checked,
+      added_on_buzz_app: els.tAddedOnApp.checked,
+
+      payment_type: paymentTypeLocal || "",
+      payment_taken: els.tPaid.checked,
+      paypal_receipt_sent: els.tPaypalReceipt.checked,
+
+      "Reason here": els.mReasonHere.value || "",
+      "Looking for": els.mLookingFor.value || "",
+      found_out: els.mFoundOut.value || "",
+      other_networking: els.mOtherNetworking.value || ""
+    };
+
+    try{
+      const data = await apiPost({ token: TOKEN, action: "update", id: modalRow.id, patch });
+      if(!data.ok) throw new Error(data.error || "Update failed");
+      closeModal();
+      await loadRows();
+    }catch(err){
+      showErr(els.modalErr, `Save error: ${String(err)}`);
     }
-
-    const csv = [headers.join(","), ...rows.map(r => r.map(csvEscape).join(","))].join("\n");
-    download(`buzz-door-checklist-export-${new Date().toISOString().slice(0,10)}.csv`, csv);
   }
 
-  function csvEscape(v){
-    const s = String(v ?? "");
-    if(s.includes(",") || s.includes('"') || s.includes("\n")){
-      return `"${s.replaceAll('"','""')}"`;
-    }
-    return s;
+  function closeModal(){
+    els.modalBack.style.display = "none";
+    modalRow = null;
   }
 
-  function download(filename, text){
-    const blob = new Blob([text], {type:"text/csv;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
+  // Payment pill buttons
+  els.payEventbrite.addEventListener("click", () => setPaymentPills("Eventbrite"));
+  els.payPaypal.addEventListener("click", () => setPaymentPills("PayPal"));
 
-  function resetAll(){
-    const ok = confirm("Reset ALL data? This deletes everything saved in this browser.");
-    if(!ok) return;
-    localStorage.removeItem(STORE_KEY);
-    boot();
-  }
+  // Wire up events
+  els.tabBuzz.addEventListener("click", () => setTab("buzz"));
+  els.tabMHBuzz.addEventListener("click", () => setTab("mhbuzz"));
+  els.search.addEventListener("input", renderTable);
+  els.quickFilter.addEventListener("change", loadRows);
 
-  function boot(){
-    const state = load();
-    els.month.value = state.settings.month || "";
-    renderWho();
-    renderTabs();
-    setActiveList("new_to_buzz");
-  }
+  els.refreshBtn.addEventListener("click", loadRows);
+  els.saveDefaultsBtn.addEventListener("click", () => { saveDefaults(); showErr(els.errBox, "Saved defaults on this device."); setTimeout(()=>showErr(els.errBox,""),1200); });
+  els.clearDefaultsBtn.addEventListener("click", () => { clearDefaults(); showErr(els.errBox, "Cleared saved defaults on this device."); setTimeout(()=>showErr(els.errBox,""),1200); loadRows(); });
 
-  // Persist month as you type
-  els.month.addEventListener("input", (e) => {
-    setMonth(e.target.value);
-  });
-  els.search.addEventListener("input", render);
+  els.btnNewBuzz.addEventListener("click", () => addRow("New to Buzz"));
+  els.btnNewMHBuzz.addEventListener("click", () => addRow("New to MHBuzz"));
 
-  // Expose for inline handlers
-  window.addTo = addTo;
-  window.setActiveList = setActiveList;
-  window.setCapturedBy = setCapturedBy;
-  window.toggleTick = toggleTick;
-  window.removeRow = removeRow;
-  window.exportCSV = exportCSV;
-  window.resetAll = resetAll;
+  els.closeModal.addEventListener("click", closeModal);
+  els.modalBack.addEventListener("click", (e) => { if(e.target === els.modalBack) closeModal(); });
+  els.saveModal.addEventListener("click", saveModal);
 
-  boot();
+  // Boot
+  loadDefaults();
+  renderCapturers();
+  setTab("buzz");
 </script>
 </body>
 </html>
