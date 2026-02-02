@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Buzz Host Companion Tool - v1.1</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --muted:#9fb0ff;
+      --text:#eef1ff;
+      --line:#23305c;
+      --good:#2dd4bf;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --btn:#1d4ed8;
+      --btn2:#334155;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1000px 500px at 10% 0%, #1b2a6a33, transparent),
+                  radial-gradient(1000px 500px at 90% 10%, #d91c5c22, transparent),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:20px;
+      border-bottom:1px solid var(--line);
+      position:sticky; top:0;
+      backdrop-filter: blur(10px);
+      background: #0b1020cc;
+      z-index:10;
+    }
+    h1{margin:0 0 6px 0; font-size:18px}
+    .sub{color:var(--muted); font-size:13px}
+    main{padding:20px; max-width:1200px; margin:0 auto}
+    .grid{display:grid; gap:14px}
+    @media(min-width:980px){ .grid{grid-template-columns: 420px 1fr} }
+
+    .card{
+      background: linear-gradient(180deg, #121a33, #0f1730);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      box-shadow: 0 10px 30px #00000033;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input, select, textarea{
+      width:100%;
+      padding:10px;
+      background:#0b1330;
+      border:1px solid #263468;
+      color:var(--text);
+      border-radius:10px;
+      outline:none;
+    }
+    textarea{min-height:70px; resize:vertical}
+    button{
+      border:0;
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      color:white;
+      background: var(--btn);
+      font-weight:600;
+    }
+    button.secondary{background:var(--btn2)}
+    button.danger{background:#be123c}
+    button:disabled{opacity:.6; cursor:not-allowed}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      background:#0b1330;
+    }
+    .stats{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .stat{
+      flex: 1 1 140px;
+      background:#0b1330;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+    }
+    .stat .k{font-size:11px; color:var(--muted)}
+    .stat .v{font-size:18px; font-weight:700; margin-top:4px}
+
+    table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:12px}
+    th, td{
+      padding:10px;
+      border-bottom:1px solid var(--line);
+      font-size:13px;
+      vertical-align:top;
+    }
+    th{color:var(--muted); text-align:left; font-weight:600}
+    tr:hover td{background:#0b1330}
+    .tag{display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; margin:2px 4px 0 0; border:1px solid var(--line)}
+    .tag.good{border-color:#1c9b87; color:#7fffe9}
+    .tag.warn{border-color:#b8860b; color:#ffe2a0}
+    .tag.bad{border-color:#b91c1c; color:#ffb4bf}
+    .tag.neutral{border-color:#334155; color:#cbd5e1}
+
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between}
+    .toolbar .left, .toolbar .right{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .small{font-size:12px; color:var(--muted)}
+    .linklike{
+      background:transparent; border:1px dashed var(--line); color:var(--muted);
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Buzz Host Companion Tool - v1.1</h1>
+  <div class="sub">Flag new attendees - track paid via Eventbrite and PayPal - tick off 101 booklet - list builds over time (saved in this browser)</div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <div class="toolbar">
+      <div class="left">
+        <span class="pill">Storage: <span class="mono" id="storeKey">buzz_host_companion_v1_1</span></span>
+      </div>
+      <div class="right">
+        <button class="secondary" id="exportBtn">Export CSV</button>
+        <button class="secondary" id="importBtn">Import CSV</button>
+        <input type="file" id="fileInput" accept=".csv" style="display:none" />
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <hr style="border:0;border-top:1px solid var(--line); margin:14px 0" />
+
+    <h2 style="margin:0 0 8px 0; font-size:15px">Add / update attendee</h2>
+
+    <label>Event / meeting label (eg MHBuzz - Feb 2026)</label>
+    <input id="eventLabel" placeholder="MHBuzz - Feb 2026" />
+
+    <div class="row">
+      <div style="flex:1 1 190px">
+        <label>First name</label>
+        <input id="firstName" placeholder="Alex" />
+      </div>
+      <div style="flex:1 1 190px">
+        <label>Last name</label>
+        <input id="lastName" placeholder="Smith" />
+      </div>
+    </div>
+
+    <label>Business / organisation</label>
+    <input id="business" placeholder="Craftsman Joinery Ltd" />
+
+    <label>Email (best unique identifier)</label>
+    <input id="email" placeholder="alex@example.com" />
+
+    <div class="row">
+      <div style="flex:1 1 190px">
+        <label>Payment status</label>
+        <select id="payment">
+          <option value="unpaid">Unpaid</option>
+          <option value="eventbrite">Paid - Eventbrite</option>
+          <option value="paypal">Paid - PayPal</option>
+          <option value="both">Paid - Both</option>
+          <option value="comp">Comp / Sponsor / Guest</option>
+        </select>
+      </div>
+      <div style="flex:1 1 190px">
+        <label>Mark as new attendee?</label>
+        <select id="isNew">
+          <option value="auto" selected>Auto-detect (based on history)</option>
+          <option value="yes">Yes - new</option>
+          <option value="no">No - returning</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div style="flex:1 1 190px">
+        <label>101 booklet given?</label>
+        <select id="booklet101">
+          <option value="no" selected>No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Notes</label>
+    <textarea id="notes" placeholder="eg Introduced by... booked 1:1... interested in sponsorship..."></textarea>
+
+    <div class="row" style="margin-top:12px">
+      <button id="addBtn">Add / update</button>
+      <button class="secondary" id="clearBtn">Clear form</button>
+      <button class="danger" id="resetBtn" title="Deletes all saved data in this browser">Reset all data</button>
+    </div>
+
+    <p class="small" style="margin-top:10px">
+      Tip - If email is blank, matching uses first+last name. Email is strongly recommended for accurate returning-attendee detection.
+    </p>
+  </section>
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="left">
+        <h2 style="margin:0; font-size:15px">Attendee list</h2>
+        <span class="pill">View: <strong id="viewLabel">All</strong></span>
+      </div>
+      <div class="right">
+        <input id="search" placeholder="Search name, business, email" style="max-width:340px" />
+        <button class="secondary" id="viewAllBtn">All</button>
+        <button class="secondary" id="viewNewBtn">New</button>
+        <button class="secondary" id="viewNeeds101Btn">Needs 101</button>
+        <button class="secondary" id="viewUnpaidBtn">Unpaid</button>
+      </div>
+    </div>
+
+    <div style="margin-top:10px" class="small">
+      Click flags to toggle. Changes save automatically.
+    </div>
+
+    <div style="margin-top:10px; overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="min-width:180px">Name</th>
+            <th style="min-width:180px">Business</th>
+            <th style="min-width:220px">Email</th>
+            <th style="min-width:140px">Last event</th>
+            <th style="min-width:320px">Flags</th>
+            <th style="min-width:110px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  const STORE_KEY = "buzz_host_companion_v1_1";
+
+  const els = {
+    stats: document.getElementById("stats"),
+    tbody: document.getElementById("tbody"),
+    viewLabel: document.getElementById("viewLabel"),
+    search: document.getElementById("search"),
+
+    eventLabel: document.getElementById("eventLabel"),
+    firstName: document.getElementById("firstName"),
+    lastName: document.getElementById("lastName"),
+    business: document.getElementById("business"),
+    email: document.getElementById("email"),
+    payment: document.getElementById("payment"),
+    isNew: document.getElementById("isNew"),
+    booklet101: document.getElementById("booklet101"),
+    notes: document.getElementById("notes"),
+
+    addBtn: document.getElementById("addBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    resetBtn: document.getElementById("resetBtn"),
+
+    exportBtn: document.getElementById("exportBtn"),
+    importBtn: document.getElementById("importBtn"),
+    fileInput: document.getElementById("fileInput"),
+
+    viewAllBtn: document.getElementById("viewAllBtn"),
+    viewNewBtn: document.getElementById("viewNewBtn"),
+    viewNeeds101Btn: document.getElementById("viewNeeds101Btn"),
+    viewUnpaidBtn: document.getElementById("viewUnpaidBtn"),
+  };
+
+  function nowISO(){ return new Date().toISOString(); }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return { attendees: [] };
+      const parsed = JSON.parse(raw);
+      if(!parsed.attendees) return { attendees: [] };
+      return parsed;
+    }catch(e){
+      return { attendees: [] };
+    }
+  }
+
+  function save(state){
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  }
+
+  function normaliseEmail(s){
+    return (s || "").trim().toLowerCase();
+  }
+
+  function normaliseName(first, last){
+    return `${(first||"").trim().toLowerCase()}|${(last||"").trim().toLowerCase()}`;
+  }
+
+  function makeId(){
+    return "a_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  }
+
+  function computeFlagsFromPayment(payment){
+    return {
+      paidEventbrite: payment === "eventbrite" || payment === "both",
+      paidPaypal: payment === "paypal" || payment === "both",
+      comp: payment === "comp",
+    };
+  }
+
+  function attendeeIsPaid(a){
+    return a.flags.comp || a.flags.paidEventbrite || a.flags.paidPaypal;
+  }
+
+  function renderStats(state){
+    const total = state.attendees.length;
+    const newCount = state.attendees.filter(a => a.flags.isNew).length;
+    const unpaidCount = state.attendees.filter(a => !attendeeIsPaid(a)).length;
+    const ebCount = state.attendees.filter(a => a.flags.paidEventbrite).length;
+    const ppCount = state.attendees.filter(a => a.flags.paidPaypal).length;
+    const needs101 = state.attendees.filter(a => a.flags.isNew && !a.flags.booklet101).length;
+    const has101 = state.attendees.filter(a => a.flags.booklet101).length;
+
+    els.stats.innerHTML = `
+      <div class="stat"><div class="k">Total people in database</div><div class="v">${total}</div></div>
+      <div class="stat"><div class="k">Flagged new attendees</div><div class="v">${newCount}</div></div>
+      <div class="stat"><div class="k">Needs 101 booklet</div><div class="v">${needs101}</div></div>
+      <div class="stat"><div class="k">101 booklet given</div><div class="v">${has101}</div></div>
+      <div class="stat"><div class="k">Unpaid (no EB/PP/Comp)</div><div class="v">${unpaidCount}</div></div>
+      <div class="stat"><div class="k">Paid - Eventbrite</div><div class="v">${ebCount}</div></div>
+      <div class="stat"><div class="k">Paid - PayPal</div><div class="v">${ppCount}</div></div>
+    `;
+  }
+
+  let VIEW = "all"; // all | new | unpaid | needs101
+
+  function setView(v){
+    VIEW = v;
+    els.viewLabel.textContent =
+      v === "all" ? "All" :
+      v === "new" ? "New attendees" :
+      v === "unpaid" ? "Unpaid" :
+      "Needs 101 booklet";
+    render();
+  }
+
+  function matchesSearch(a, q){
+    if(!q) return true;
+    const hay = [
+      a.firstName, a.lastName, a.business, a.email, a.lastEventLabel, a.notes
+    ].join(" ").toLowerCase();
+    return hay.includes(q.toLowerCase());
+  }
+
+  function escapeHtml(v){
+    return String(v ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function render(){
+    const state = load();
+    renderStats(state);
+
+    const q = els.search.value.trim();
+    let list = state.attendees.slice();
+
+    if(VIEW === "new"){
+      list = list.filter(a => a.flags.isNew);
+    }
+    if(VIEW === "unpaid"){
+      list = list.filter(a => !attendeeIsPaid(a));
+    }
+    if(VIEW === "needs101"){
+      list = list.filter(a => a.flags.isNew && !a.flags.booklet101);
+    }
+
+    list = list.filter(a => matchesSearch(a, q));
+
+    // most recently updated first
+    list.sort((a,b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+
+    els.tbody.innerHTML = list.map(a => {
+      const tags = [];
+
+      if(a.flags.isNew) tags.push(`<span class="tag warn">New</span>`);
+      if(a.flags.isNew && !a.flags.booklet101) tags.push(`<span class="tag warn">Needs 101 booklet</span>`);
+      if(a.flags.booklet101) tags.push(`<span class="tag good">101 booklet given</span>`);
+
+      if(a.flags.paidEventbrite) tags.push(`<span class="tag good">Paid - Eventbrite</span>`);
+      if(a.flags.paidPaypal) tags.push(`<span class="tag good">Paid - PayPal</span>`);
+      if(a.flags.comp) tags.push(`<span class="tag neutral">Comp</span>`);
+      if(!attendeeIsPaid(a)) tags.push(`<span class="tag bad">Unpaid</span>`);
+
+      const safeEmail = a.email ? a.email : `<span class="small">-</span>`;
+      const safeBiz = a.business ? a.business : `<span class="small">-</span>`;
+
+      return `
+        <tr>
+          <td><strong>${escapeHtml(a.firstName || "")} ${escapeHtml(a.lastName || "")}</strong></td>
+          <td>${escapeHtml(safeBiz)}</td>
+          <td>${a.email ? escapeHtml(a.email) : safeEmail}</td>
+          <td>${escapeHtml(a.lastEventLabel || "-")}</td>
+          <td>
+            ${tags.join("")}
+            <div style="margin-top:8px" class="row">
+              <button class="linklike" onclick="toggleFlag('${a.id}','isNew')">Toggle New</button>
+              <button class="linklike" onclick="toggleFlag('${a.id}','booklet101')">Tick 101</button>
+              <button class="linklike" onclick="togglePayment('${a.id}','eventbrite')">Toggle EB</button>
+              <button class="linklike" onclick="togglePayment('${a.id}','paypal')">Toggle PayPal</button>
+              <button class="linklike" onclick="toggleFlag('${a.id}','comp')">Toggle Comp</button>
+            </div>
+          </td>
+          <td>
+            <button class="secondary" onclick="loadToForm('${a.id}')">Edit</button>
+            <button class="danger" style="margin-top:8px" onclick="deleteAttendee('${a.id}')">Delete</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    if(list.length === 0){
+      els.tbody.innerHTML = `<tr><td colspan="6" class="small">No matches. Try changing the view or search.</td></tr>`;
+    }
+  }
+
+  function upsertAttendee(){
+    const state = load();
+
+    const eventLabel = els.eventLabel.value.trim() || "Unspecified event";
+    const firstName = els.firstName.value.trim();
+    const lastName = els.lastName.value.trim();
+    const business = els.business.value.trim();
+    const email = normaliseEmail(els.email.value);
+    const payment = els.payment.value;
+    const isNewMode = els.isNew.value; // auto | yes | no
+    const booklet101 = els.booklet101.value === "yes";
+    const notes = els.notes.value.trim();
+
+    if(!firstName || !lastName){
+      alert("First name and last name are required.");
+      return;
+    }
+
+    // Find existing by email if present, else by name
+    let existing = null;
+    if(email){
+      existing = state.attendees.find(a => normaliseEmail(a.email) === email) || null;
+    }else{
+      const key = normaliseName(firstName, lastName);
+      existing = state.attendees.find(a => normaliseName(a.firstName, a.lastName) === key) || null;
+    }
+
+    const paymentFlags = computeFlagsFromPayment(payment);
+
+    let isNewCalculated = false;
+    if(isNewMode === "yes") isNewCalculated = true;
+    if(isNewMode === "no") isNewCalculated = false;
+    if(isNewMode === "auto"){
+      isNewCalculated = existing ? false : true;
+    }
+
+    if(!existing){
+      const a = {
+        id: makeId(),
+        firstName, lastName, business, email: email || "",
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+        lastEventLabel: eventLabel,
+        history: [],
+        flags: {
+          isNew: isNewCalculated,
+          paidEventbrite: paymentFlags.paidEventbrite,
+          paidPaypal: paymentFlags.paidPaypal,
+          comp: paymentFlags.comp,
+          booklet101: booklet101
+        },
+        notes: notes || ""
+      };
+
+      a.history.push({
+        eventLabel,
+        dateISO: nowISO(),
+        payment,
+        isNewAtThatEvent: isNewCalculated,
+        booklet101AtThatEvent: booklet101,
+        notes: notes || ""
+      });
+
+      state.attendees.push(a);
+      save(state);
+      render();
+      alert("Added.");
+      return;
+    }
+
+    // Update existing
+    existing.firstName = firstName;
+    existing.lastName = lastName;
+    existing.business = business;
+    existing.email = email || existing.email || "";
+    existing.updatedAt = nowISO();
+    existing.lastEventLabel = eventLabel;
+
+    // Preserve booklet flag if already true, otherwise set from form
+    if(typeof existing.flags.booklet101 !== "boolean") existing.flags.booklet101 = false;
+
+    existing.flags.isNew = isNewCalculated;
+    existing.flags.paidEventbrite = paymentFlags.paidEventbrite;
+    existing.flags.paidPaypal = paymentFlags.paidPaypal;
+    existing.flags.comp = paymentFlags.comp;
+
+    // Only ever move booklet101 from false -> true (avoid accidental untick via form)
+    if(booklet101) existing.flags.booklet101 = true;
+
+    existing.notes = notes || existing.notes || "";
+
+    existing.history = existing.history || [];
+    existing.history.push({
+      eventLabel,
+      dateISO: nowISO(),
+      payment,
+      isNewAtThatEvent: isNewCalculated,
+      booklet101AtThatEvent: existing.flags.booklet101,
+      notes: notes || ""
+    });
+
+    save(state);
+    render();
+    alert("Updated.");
+  }
+
+  function clearForm(){
+    els.eventLabel.value = "";
+    els.firstName.value = "";
+    els.lastName.value = "";
+    els.business.value = "";
+    els.email.value = "";
+    els.payment.value = "unpaid";
+    els.isNew.value = "auto";
+    els.booklet101.value = "no";
+    els.notes.value = "";
+  }
+
+  function resetAll(){
+    const ok = confirm("Reset all data? This deletes everything saved in this browser.");
+    if(!ok) return;
+    localStorage.removeItem(STORE_KEY);
+    render();
+  }
+
+  // Expose for inline onclick
+  window.toggleFlag = function(id, flag){
+    const state = load();
+    const a = state.attendees.find(x => x.id === id);
+    if(!a) return;
+    if(!a.flags) a.flags = {};
+    a.flags[flag] = !a.flags[flag];
+    a.updatedAt = nowISO();
+    save(state);
+    render();
+  };
+
+  window.togglePayment = function(id, mode){
+    const state = load();
+    const a = state.attendees.find(x => x.id === id);
+    if(!a) return;
+    if(!a.flags) a.flags = {};
+
+    if(mode === "eventbrite"){
+      a.flags.paidEventbrite = !a.flags.paidEventbrite;
+    }
+    if(mode === "paypal"){
+      a.flags.paidPaypal = !a.flags.paidPaypal;
+    }
+
+    a.updatedAt = nowISO();
+    save(state);
+    render();
+  };
+
+  window.deleteAttendee = function(id){
+    const state = load();
+    const a = state.attendees.find(x => x.id === id);
+    if(!a) return;
+    const ok = confirm(`Delete ${a.firstName} ${a.lastName}?`);
+    if(!ok) return;
+    state.attendees = state.attendees.filter(x => x.id !== id);
+    save(state);
+    render();
+  };
+
+  window.loadToForm = function(id){
+    const state = load();
+    const a = state.attendees.find(x => x.id === id);
+    if(!a) return;
+
+    els.eventLabel.value = a.lastEventLabel || "";
+    els.firstName.value = a.firstName || "";
+    els.lastName.value = a.lastName || "";
+    els.business.value = a.business || "";
+    els.email.value = a.email || "";
+    els.notes.value = a.notes || "";
+
+    // derive payment dropdown from flags (best-effort)
+    const eb = !!a.flags.paidEventbrite;
+    const pp = !!a.flags.paidPaypal;
+    const comp = !!a.flags.comp;
+
+    if(comp) els.payment.value = "comp";
+    else if(eb && pp) els.payment.value = "both";
+    else if(eb) els.payment.value = "eventbrite";
+    else if(pp) els.payment.value = "paypal";
+    else els.payment.value = "unpaid";
+
+    els.isNew.value = a.flags.isNew ? "yes" : "no";
+    els.booklet101.value = a.flags.booklet101 ? "yes" : "no";
+
+    window.scrollTo({top:0, behaviour:"smooth"});
+  };
+
+  function toCSV(state){
+    const headers = [
+      "firstName","lastName","business","email",
+      "isNew","booklet101","paidEventbrite","paidPaypal","comp",
+      "lastEventLabel","createdAt","updatedAt","notes"
+    ];
+
+    const rows = state.attendees.map(a => ([
+      a.firstName || "",
+      a.lastName || "",
+      a.business || "",
+      a.email || "",
+      a.flags?.isNew ? "TRUE" : "FALSE",
+      a.flags?.booklet101 ? "TRUE" : "FALSE",
+      a.flags?.paidEventbrite ? "TRUE" : "FALSE",
+      a.flags?.paidPaypal ? "TRUE" : "FALSE",
+      a.flags?.comp ? "TRUE" : "FALSE",
+      a.lastEventLabel || "",
+      a.createdAt || "",
+      a.updatedAt || "",
+      (a.notes || "").replaceAll("\n"," ")
+    ]));
+
+    return [headers.join(","), ...rows.map(r => r.map(csvEscape).join(","))].join("\n");
+  }
+
+  function csvEscape(v){
+    const s = String(v ?? "");
+    if(s.includes(",") || s.includes('"') || s.includes("\n")){
+      return `"${s.replaceAll('"','""')}"`;
+    }
+    return s;
+  }
+
+  function download(filename, text){
+    const blob = new Blob([text], {type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function parseCSV(text){
+    const rows = [];
+    let row = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for(let i=0;i<text.length;i++){
+      const c = text[i];
+      const next = text[i+1];
+
+      if(inQuotes){
+        if(c === '"' && next === '"'){ cur += '"'; i++; continue; }
+        if(c === '"'){ inQuotes = false; continue; }
+        cur += c;
+        continue;
+      }
+
+      if(c === '"'){ inQuotes = true; continue; }
+      if(c === ","){ row.push(cur); cur=""; continue; }
+      if(c === "\n"){
+        row.push(cur); cur="";
+        rows.push(row); row=[];
+        continue;
+      }
+      if(c === "\r"){ continue; }
+      cur += c;
+    }
+    if(cur.length || row.length){
+      row.push(cur);
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  function importCSV(text){
+    const state = load();
+    const rows = parseCSV(text);
+    if(rows.length < 2){
+      alert("CSV looks empty.");
+      return;
+    }
+
+    const headers = rows[0].map(h => (h || "").trim());
+    const idx = (name) => headers.findIndex(h => h.toLowerCase() === name.toLowerCase());
+
+    const required = ["firstName","lastName"];
+    for(const r of required){
+      if(idx(r) === -1){
+        alert(`Missing required column: ${r}`);
+        return;
+      }
+    }
+
+    const mapped = rows.slice(1).filter(r => r.some(cell => String(cell||"").trim() !== ""));
+    let added = 0;
+    let updated = 0;
+
+    for(const r of mapped){
+      const firstName = (r[idx("firstName")] || "").trim();
+      const lastName = (r[idx("lastName")] || "").trim();
+      if(!firstName || !lastName) continue;
+
+      const business = idx("business") > -1 ? (r[idx("business")] || "").trim() : "";
+      const email = idx("email") > -1 ? normaliseEmail(r[idx("email")]) : "";
+      const lastEventLabel = idx("lastEventLabel") > -1 ? (r[idx("lastEventLabel")] || "").trim() : "";
+      const notes = idx("notes") > -1 ? (r[idx("notes")] || "").trim() : "";
+
+      const isNew = idx("isNew") > -1 ? String(r[idx("isNew")]).trim().toUpperCase() === "TRUE" : false;
+      const booklet101 = idx("booklet101") > -1 ? String(r[idx("booklet101")]).trim().toUpperCase() === "TRUE" : false;
+      const paidEventbrite = idx("paidEventbrite") > -1 ? String(r[idx("paidEventbrite")]).trim().toUpperCase() === "TRUE" : false;
+      const paidPaypal = idx("paidPaypal") > -1 ? String(r[idx("paidPaypal")]).trim().toUpperCase() === "TRUE" : false;
+      const comp = idx("comp") > -1 ? String(r[idx("comp")]).trim().toUpperCase() === "TRUE" : false;
+
+      let existing = null;
+      if(email){
+        existing = state.attendees.find(a => normaliseEmail(a.email) === email) || null;
+      }else{
+        const key = normaliseName(firstName, lastName);
+        existing = state.attendees.find(a => normaliseName(a.firstName, a.lastName) === key) || null;
+      }
+
+      if(!existing){
+        state.attendees.push({
+          id: makeId(),
+          firstName, lastName, business, email,
+          createdAt: nowISO(),
+          updatedAt: nowISO(),
+          lastEventLabel: lastEventLabel || "",
+          history: [],
+          flags: {isNew, booklet101, paidEventbrite, paidPaypal, comp},
+          notes
+        });
+        added++;
+      }else{
+        existing.firstName = firstName;
+        existing.lastName = lastName;
+        existing.business = business;
+        existing.email = email || existing.email || "";
+        existing.lastEventLabel = lastEventLabel || existing.lastEventLabel || "";
+        existing.flags = {isNew, booklet101, paidEventbrite, paidPaypal, comp};
+        existing.notes = notes || existing.notes || "";
+        existing.updatedAt = nowISO();
+        updated++;
+      }
+    }
+
+    save(state);
+    render();
+    alert(`Import complete. Added: ${added}. Updated: ${updated}.`);
+  }
+
+  els.addBtn.addEventListener("click", upsertAttendee);
+  els.clearBtn.addEventListener("click", clearForm);
+  els.resetBtn.addEventListener("click", resetAll);
+
+  els.viewAllBtn.addEventListener("click", () => setView("all"));
+  els.viewNewBtn.addEventListener("click", () => setView("new"));
+  els.viewNeeds101Btn.addEventListener("click", () => setView("needs101"));
+  els.viewUnpaidBtn.addEventListener("click", () => setView("unpaid"));
+
+  els.search.addEventListener("input", render);
+
+  els.exportBtn.addEventListener("click", () => {
+    const state = load();
+    const csv = toCSV(state);
+    const filename = `buzz-host-companion-tool-v1_1-export-${new Date().toISOString().slice(0,10)}.csv`;
+    download(filename, csv);
+  });
+
+  els.importBtn.addEventListener("click", () => els.fileInput.click());
+
+  els.fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => importCSV(reader.result);
+    reader.readAsText(file);
+    els.fileInput.value = "";
+  });
+
+  render();
+</script>
+</body>
+</html>
