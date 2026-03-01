@@ -1,709 +1,781 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Buzz HAC - Door Checklist</title>
-  <style>
-    :root{
-      --bg:#0b1020;
-      --card:#121a33;
-      --line:#23305c;
-      --text:#eef1ff;
-      --muted:#9fb0ff;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MH Buzz — Host Companion</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --buzz: #E8531A;
+  --buzz-light: #F4784A;
+  --buzz-dim: rgba(232,83,26,0.12);
+  --bg: #0E0F11;
+  --surface: #16181C;
+  --surface2: #1E2126;
+  --border: rgba(255,255,255,0.07);
+  --text: #F0EDE8;
+  --muted: #7A7D85;
+  --green: #4ADE80;
+  --amber: #FBBF24;
+  --blue: #60A5FA;
+  --purple: #A78BFA;
+  --red: #F87171;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh}
 
-      --btn:#1d4ed8;
-      --btn2:#334155;
-      --danger:#be123c;
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--buzz);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-text{color:var(--muted);font-size:13px}
 
-      --orange:#f7921c;
-      --pink:#d91c5c;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
-    header{padding:14px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#0b1020f2;backdrop-filter:blur(8px);z-index:10}
-    h1{margin:0 0 4px 0;font-size:16px}
-    .sub{margin:0;font-size:12px;color:var(--muted)}
-    main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:12px}
-    @media(min-width:980px){ main{grid-template-columns:440px 1fr;align-items:start} }
-    .card{background:linear-gradient(180deg,#121a33,#0f1730);border:1px solid var(--line);border-radius:14px;padding:14px}
-    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
-    input,select{width:100%;padding:10px;border-radius:12px;border:1px solid #263468;background:#0b1330;color:var(--text);outline:none}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .row > *{flex:1 1 160px}
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--buzz);letter-spacing:-0.5px}
+.logo span{color:var(--text)}
+.header-right{display:flex;align-items:center;gap:16px}
+.header-meta{color:var(--muted);font-size:12px;text-align:right;line-height:1.4}
+.refresh-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:12px;transition:all 0.15s}
+.refresh-btn:hover{border-color:var(--buzz);color:var(--buzz)}
 
-    .who{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-    .who button{border:0;padding:10px 12px;border-radius:999px;cursor:pointer;font-weight:900}
-    .who .o{background:var(--orange);color:#0b1020}
-    .who .p{background:var(--pink);color:white}
-    .who .active{outline:3px solid rgba(255,255,255,.22)}
+/* TABS */
+.tabs{display:flex;gap:2px;padding:16px 28px 0;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto}
+.tab{padding:9px 18px;cursor:pointer;color:var(--muted);border-radius:6px 6px 0 0;font-weight:500;font-size:13px;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--buzz);border-bottom-color:var(--buzz);background:var(--bg)}
 
-    .bigBtns{display:grid;gap:10px;margin-top:12px}
-    .bigBtns button{border:1px solid #2a3a72;border-radius:14px;padding:14px 12px;cursor:pointer;font-weight:900;font-size:16px;text-align:left}
-    .primary{background:var(--btn);color:white}
-    .secondary{background:#0b1330;color:var(--text)}
+/* PAGES */
+.page{display:none;padding:24px 28px;max-width:1400px}
+.page.active{display:block}
 
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .tab{border:1px solid var(--line);background:#0b1330;color:var(--muted);padding:8px 10px;border-radius:999px;cursor:pointer;font-weight:900;font-size:12px}
-    .tab.active{background:var(--btn2);color:var(--text)}
+/* LAYOUT */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
 
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    .small{font-size:12px;color:var(--muted)}
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--line);font-size:11px;color:var(--muted);background:#0b1330}
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.card-title{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:14px;font-weight:600}
+.chart-wrap{position:relative;height:210px}
+.chart-wrap-lg{position:relative;height:280px}
 
-    table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:12px}
-    th,td{padding:10px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
-    th{color:var(--muted);text-align:left;font-weight:900;font-size:12px}
-    tr:hover td{background:#0b1330}
+/* KPI */
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.kpi-value{font-family:'DM Serif Display',serif;font-size:30px;line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+.c-buzz{color:var(--buzz)} .c-green{color:var(--green)} .c-amber{color:var(--amber)} .c-blue{color:var(--blue)} .c-muted{color:var(--muted)} .c-red{color:var(--red)}
 
-    .btn{border:0;padding:9px 10px;border-radius:12px;cursor:pointer;font-weight:900;font-size:12px;background:var(--btn2);color:white}
-    .btn.danger{background:var(--danger)}
-    .btn.link{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);font-weight:600;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border)}
+td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
 
-    /* Modal */
-    .modalBack{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
-    .modal{width:min(820px,100%);background:#0b1330;border:1px solid #2a3a72;border-radius:16px;padding:14px}
-    .modalHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .modalHead h2{margin:0;font-size:16px}
-    .checks{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
-    .checkItem{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
-    input[type="checkbox"]{width:18px;height:18px}
-    details{border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:10px}
-    summary{cursor:pointer;font-weight:900;list-style:none}
-    summary::-webkit-details-marker{display:none}
-    .err{color:#ffb4bf;font-size:12px;margin-top:8px;display:none}
-    .pillRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .pill{padding:9px 10px;border-radius:999px;border:1px solid var(--line);background:#0b1330;color:var(--text);cursor:pointer;font-weight:900;font-size:12px}
-    .pill.active{background:var(--btn2);border-color:#3b4a86}
-  </style>
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:0.3px;white-space:nowrap}
+.b-host{background:rgba(232,83,26,0.2);color:var(--buzz)}
+.b-ambassador{background:rgba(96,165,250,0.15);color:var(--blue)}
+.b-sponsor{background:rgba(251,191,36,0.15);color:var(--amber)}
+.b-buzzplus{background:rgba(167,139,250,0.15);color:var(--purple)}
+.b-regional{background:rgba(74,222,128,0.15);color:var(--green)}
+.b-regional-host{background:rgba(74,222,128,0.1);color:#86EFAC}
+.b-corporate{background:rgba(96,165,250,0.1);color:#93C5FD}
+.b-new{background:rgba(74,222,128,0.2);color:var(--green)}
+.b-lapsed{background:rgba(248,113,113,0.15);color:var(--red)}
+.b-candidate{background:rgba(251,191,36,0.12);color:var(--amber)}
+
+/* STREAK DOTS */
+.streak-bar{display:flex;gap:3px;align-items:center}
+.sdot{width:10px;height:10px;border-radius:2px;background:var(--surface2)}
+.sdot.hit{background:var(--buzz)}
+.sdot.hit-green{background:var(--green)}
+
+/* INPUTS */
+.search-box{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-family:inherit;font-size:13px;margin-bottom:14px;outline:none}
+.search-box:focus{border-color:var(--buzz)}
+.toggle-group{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tog{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:12px;cursor:pointer;transition:all 0.15s}
+.tog.active,.tog:hover{border-color:var(--buzz);color:var(--buzz);background:var(--buzz-dim)}
+
+/* ALERTS */
+.alert{display:flex;gap:10px;padding:11px 13px;background:var(--surface2);border-radius:8px;margin-bottom:8px;border-left:3px solid transparent}
+.alert.green{border-left-color:var(--green)}
+.alert.amber{border-left-color:var(--amber)}
+.alert.red{border-left-color:var(--red)}
+.alert.blue{border-left-color:var(--blue)}
+.alert-icon{font-size:15px;flex-shrink:0}
+.alert-text{font-size:12px;line-height:1.5;color:var(--muted)}
+.alert-text strong{color:var(--text)}
+
+/* PLENTY */
+.plenty-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;margin-bottom:16px}
+.checkpoint{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.checkpoint.current{border-color:var(--buzz);background:var(--buzz-dim)}
+.cp-label{font-size:10px;color:var(--muted);margin-bottom:4px}
+.cp-value{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text)}
+.cp-value.empty{color:var(--surface2)}
+.projection-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;margin-bottom:16px}
+.proj-label{font-size:11px;color:var(--muted);margin-bottom:6px}
+.proj-value{font-family:'DM Serif Display',serif;font-size:48px;color:var(--buzz)}
+.proj-range{font-size:12px;color:var(--muted);margin-top:4px}
+.traffic-light{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-top:8px}
+.tl-green{background:rgba(74,222,128,0.15);color:var(--green)}
+.tl-amber{background:rgba(251,191,36,0.15);color:var(--amber)}
+.tl-red{background:rgba(248,113,113,0.15);color:var(--red)}
+
+.section-head{font-family:'DM Serif Display',serif;font-size:17px;margin-bottom:14px}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.empty{color:var(--muted);font-style:italic;font-size:13px;padding:8px 0}
+
+/* PLENTY INPUT */
+.plenty-input-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap}
+.input-group{display:flex;flex-direction:column;gap:4px}
+.input-group label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px}
+.input-group input{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-family:inherit;font-size:14px;width:90px;outline:none}
+.input-group input:focus{border-color:var(--buzz)}
+.save-btn{background:var(--buzz);color:white;border:none;border-radius:7px;padding:9px 18px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:opacity 0.15s}
+.save-btn:hover{opacity:0.85}
+.save-note{font-size:11px;color:var(--muted);margin-top:6px}
+</style>
 </head>
 <body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="load-text">Loading from Google Sheets...</div>
+</div>
+
 <header>
-  <h1>Buzz HAC - Door Checklist</h1>
-  <p class="sub">Buttons + pop-up checklist • shared Google Sheet backend • month + captured-by remembered per device</p>
+  <div class="logo">MH Buzz <span>Host Companion</span></div>
+  <div class="header-right">
+    <div class="header-meta" id="header-meta">—</div>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
 </header>
 
-<main>
-  <!-- LEFT: entry -->
-  <section class="card">
-    <div class="row">
-      <div>
-        <label>Buzz month</label>
-        <input id="month" placeholder="February 2026" />
+<div class="tabs">
+  <div class="tab active" onclick="showTab('overview',this)">📊 Overview</div>
+  <div class="tab" onclick="showTab('firsttimers',this)">🆕 First-Timers</div>
+  <div class="tab" onclick="showTab('loyalty',this)">🏅 Loyalty</div>
+  <div class="tab" onclick="showTab('plenty',this)">📈 PLENTY</div>
+  <div class="tab" onclick="showTab('health',this)">💚 Health</div>
+  <div class="tab" onclick="showTab('people',this)">👥 People</div>
+</div>
+
+<div class="page active" id="tab-overview">
+  <div class="kpi-row" id="kpi-overview"></div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Attendance — Full History (Stacked: New + Returning)</div><div class="chart-wrap"><canvas id="ch-history"></canvas></div></div>
+    <div class="card"><div class="card-title">New vs Returning — Rolling 12 Months</div><div class="chart-wrap"><canvas id="ch-rolling"></canvas></div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Alerts & Actions</div><div id="alerts"></div></div>
+    <div class="card"><div class="card-title">Last 8 Events</div>
+      <table><thead><tr><th>Month</th><th>Booked</th><th>New</th><th>Returning</th><th>New %</th></tr></thead>
+      <tbody id="recent-table"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="tab-firsttimers">
+  <div class="section-head">First-Timers — Most Recent Event</div>
+  <div class="card" style="margin-bottom:16px"><div id="ft-list"></div></div>
+  <div class="card"><div class="card-title">First-Timers Per Month — Full History</div><div class="chart-wrap-lg"><canvas id="ch-ft"></canvas></div></div>
+</div>
+
+<div class="page" id="tab-loyalty">
+  <div class="kpi-row" id="kpi-loyalty"></div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Top 15 Regulars — All Time</div>
+      <table><thead><tr><th>#</th><th>Name</th><th>Role</th><th>Visits</th><th>Last 6</th></tr></thead>
+      <tbody id="top-table"></tbody></table>
+    </div>
+    <div class="card"><div class="card-title">Hot Streak — 4+ of Last 6 Events</div>
+      <table><thead><tr><th>Name</th><th>Company</th><th>Last 6</th></tr></thead>
+      <tbody id="streak-table"></tbody></table>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">Lapsed Regulars — 3+ Visits, Absent 3 Months</div>
+      <table><thead><tr><th>Name</th><th>Email</th><th>Visits</th><th>Last Seen</th></tr></thead>
+      <tbody id="lapsed-table"></tbody></table>
+    </div>
+    <div class="card"><div class="card-title">Ambassador & Sponsor Candidates — High Frequency, No Role</div>
+      <table><thead><tr><th>Name</th><th>Company</th><th>Visits</th><th>Since</th></tr></thead>
+      <tbody id="candidate-table"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="tab-plenty">
+  <div class="grid-2" style="margin-bottom:0">
+    <div>
+      <div class="section-head" id="plenty-event-title">March 2026 — Booking Tracker</div>
+      <div class="plenty-grid" id="plenty-checkpoints"></div>
+      <div class="projection-box">
+        <div class="proj-label">Projected Day-Of Attendance</div>
+        <div class="proj-value" id="proj-value">—</div>
+        <div class="proj-range" id="proj-range">Based on historical booking curves</div>
+        <div id="proj-traffic"></div>
       </div>
-      <div>
-        <label>Quick filter</label>
-        <select id="quickFilter">
-          <option value="all">All</option>
-          <option value="unpaid">Unpaid (payment_taken = false/blank)</option>
-          <option value="paypal_needs_receipt">PayPal - needs receipt</option>
-          <option value="not_on_app">Not on app</option>
-        </select>
-      </div>
-    </div>
-
-    <label>Captured by</label>
-    <div class="who" id="who"></div>
-    <div class="small" id="whoLabel" style="margin-top:6px"></div>
-
-    <div class="row" style="margin-top:10px">
-      <div>
-        <label>Name (required)</label>
-        <input id="name" placeholder="First + last name" />
-      </div>
-      <div>
-        <label>Business (optional)</label>
-        <input id="business" placeholder="Business / role" />
-      </div>
-    </div>
-
-    <details>
-      <summary>Optional extras (quick, not a questionnaire)</summary>
-
-      <label>Reason here</label>
-      <select id="reasonHere">
-        <option value="">-</option>
-        <option>Meet new people</option>
-        <option>Find referrals / clients</option>
-        <option>Build local connections</option>
-        <option>Learn / get ideas</option>
-        <option>Promote business</option>
-        <option>Other</option>
-      </select>
-
-      <label>Looking for</label>
-      <select id="lookingFor">
-        <option value="">-</option>
-        <option>Clients</option>
-        <option>Referrals</option>
-        <option>Collaborations</option>
-        <option>Suppliers</option>
-        <option>Introductions</option>
-        <option>All types of connections</option>
-      </select>
-
-      <label>Found out about Buzz</label>
-      <select id="foundOut">
-        <option value="">-</option>
-        <option>Referral (person)</option>
-        <option>LinkedIn</option>
-        <option>Facebook</option>
-        <option>Google / search</option>
-        <option>Poster / flyer</option>
-        <option>Other</option>
-      </select>
-
-      <label>Other networking</label>
-      <select id="otherNetworking">
-        <option value="">-</option>
-        <option>Face-to-face (regular)</option>
-        <option>Online</option>
-        <option>Membership group</option>
-        <option>Ad hoc / occasional</option>
-        <option>No</option>
-      </select>
-    </details>
-
-    <div class="bigBtns">
-      <button class="primary" id="btnNewBuzz">+ New to Buzz</button>
-      <button class="secondary" id="btnNewMHBuzz">+ New to MHBuzz</button>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <button class="btn link" id="refreshBtn">Refresh</button>
-      <button class="btn" id="saveDefaultsBtn">Save month + captured-by</button>
-      <button class="btn danger" id="clearDefaultsBtn">Clear saved defaults</button>
-    </div>
-
-    <div class="err" id="errBox"></div>
-
-    <div class="small" style="margin-top:10px">
-      Notes:
-      <br>• Month + Captured-by are saved per device to reduce typing.
-      <br>• “Checklist” pop-up includes PayPal/Eventbrite + receipt + app confirmation.
-    </div>
-  </section>
-
-  <!-- RIGHT: list -->
-  <section class="card">
-    <div class="toolbar">
-      <div class="tabs">
-        <button class="tab active" id="tabBuzz">New to Buzz</button>
-        <button class="tab" id="tabMHBuzz">New to MHBuzz</button>
-      </div>
-      <input id="search" placeholder="Search name/business" style="max-width:280px" />
-    </div>
-
-    <div class="small" style="margin-top:8px">
-      Current view is filtered by month (if set) + tab + quick filter. Tap Checklist to update.
-    </div>
-
-    <div style="margin-top:10px; overflow:auto">
-      <table>
-        <thead>
-          <tr>
-            <th style="min-width:170px">Name</th>
-            <th style="min-width:170px">Business</th>
-            <th style="min-width:120px">Month</th>
-            <th style="min-width:85px">By</th>
-            <th style="min-width:200px">Payment</th>
-            <th style="min-width:200px">Quick view</th>
-            <th style="min-width:120px">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-
-<!-- Modal -->
-<div class="modalBack" id="modalBack">
-  <div class="modal">
-    <div class="modalHead">
-      <div>
-        <h2 id="modalTitle">Checklist</h2>
-        <div class="small" id="modalMeta"></div>
-      </div>
-      <button class="btn" id="closeModal">Close</button>
-    </div>
-
-    <div class="checks">
-      <label class="checkItem"><input type="checkbox" id="tSticker"> Sticker given</label>
-      <label class="checkItem"><input type="checkbox" id="tAppOn"> Fully on the app</label>
-      <label class="checkItem"><input type="checkbox" id="tHelp"> Needs help with the app</label>
-      <label class="checkItem"><input type="checkbox" id="tBooklet"> 101 booklet issued</label>
-      <label class="checkItem"><input type="checkbox" id="tAddedOnApp"> Added on Buzz app</label>
-    </div>
-
-    <details open>
-      <summary>Payment</summary>
-
-      <div class="pillRow">
-        <button class="pill" id="payEventbrite">Eventbrite</button>
-        <button class="pill" id="payPaypal">PayPal</button>
-      </div>
-
-      <div class="checks" style="margin-top:10px">
-        <label class="checkItem"><input type="checkbox" id="tPaid"> Payment taken</label>
-        <label class="checkItem"><input type="checkbox" id="tPaypalReceipt"> PayPal receipt sent</label>
-      </div>
-
-      <div class="small" style="margin-top:8px">
-        PayPal flow: set PayPal → tick Payment taken → tick Receipt sent.
-      </div>
-    </details>
-
-    <details>
-      <summary>Extras</summary>
-
-      <div class="row" style="margin-top:10px">
-        <div>
-          <label>Reason here</label>
-          <select id="mReasonHere">
-            <option value="">-</option>
-            <option>Meet new people</option>
-            <option>Find referrals / clients</option>
-            <option>Build local connections</option>
-            <option>Learn / get ideas</option>
-            <option>Promote business</option>
-            <option>Other</option>
-          </select>
+      <div class="card">
+        <div class="card-title">Update Today's Bookings</div>
+        <div class="plenty-input-row">
+          <div class="input-group"><label>Total Booked (T)</label><input type="number" id="inp-t" placeholder="e.g. 28"></div>
+          <div class="input-group"><label>LinkedIn</label><input type="number" id="inp-l" placeholder="e.g. 42"></div>
+          <div class="input-group"><label>Eventbrite</label><input type="number" id="inp-e" placeholder="e.g. 2"></div>
+          <div class="input-group"><label>Wilson Browne</label><input type="number" id="inp-wb" placeholder="e.g. 2"></div>
+          <button class="save-btn" onclick="savePlentyEntry()">Save to Sheet ↗</button>
         </div>
-        <div>
-          <label>Looking for</label>
-          <select id="mLookingFor">
-            <option value="">-</option>
-            <option>Clients</option>
-            <option>Referrals</option>
-            <option>Collaborations</option>
-            <option>Suppliers</option>
-            <option>Introductions</option>
-            <option>All types of connections</option>
-          </select>
-        </div>
+        <div class="save-note">After saving, update your Google Sheet manually with today's figures in the Plenty tab. This tool will reflect it on next refresh.</div>
       </div>
-
-      <div class="row">
-        <div>
-          <label>Found out about Buzz</label>
-          <select id="mFoundOut">
-            <option value="">-</option>
-            <option>Referral (person)</option>
-            <option>LinkedIn</option>
-            <option>Facebook</option>
-            <option>Google / search</option>
-            <option>Poster / flyer</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div>
-          <label>Other networking</label>
-          <select id="mOtherNetworking">
-            <option value="">-</option>
-            <option>Face-to-face (regular)</option>
-            <option>Online</option>
-            <option>Membership group</option>
-            <option>Ad hoc / occasional</option>
-            <option>No</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="small" style="margin-top:8px">
-        These are optional - leave blank if you haven’t asked.
-      </div>
-    </details>
-
-    <div class="row" style="margin-top:12px">
-      <button class="btn" id="saveModal">Save</button>
     </div>
+    <div class="card"><div class="card-title">Historical Booking Curves (T — Total Booked by checkpoint)</div><div class="chart-wrap-lg"><canvas id="ch-plenty"></canvas></div></div>
+  </div>
+</div>
 
-    <div class="err" id="modalErr"></div>
+<div class="page" id="tab-health">
+  <div class="grid-3">
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+      <div class="card-title">Current Health Score</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:80px;line-height:1" id="health-score">—</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:6px" id="health-label">—</div>
+      <div style="width:100%;margin-top:18px" id="health-breakdown"></div>
+    </div>
+    <div class="card" style="grid-column:span 2"><div class="card-title">Health Score — Rolling History</div><div class="chart-wrap-lg"><canvas id="ch-health"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">How the Score Works</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;line-height:1.6;color:var(--muted)">
+      <div><strong style="color:var(--text)">Acquisition 35%</strong><br>% of room who are first-timers. Signals marketing reach — are fresh faces finding you?</div>
+      <div><strong style="color:var(--text)">Retention 40%</strong><br>% of last month's attendees who came back. The truest measure of experience quality.</div>
+      <div><strong style="color:var(--text)">Momentum 25%</strong><br>3-month trend vs prior 3 months. Growing, holding, or sliding?</div>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--muted)">
+      <span style="color:var(--green)">■ 80–100 Thriving</span> &nbsp;
+      <span style="color:#86EFAC">■ 65–79 Healthy</span> &nbsp;
+      <span style="color:var(--amber)">■ 50–64 Steady</span> &nbsp;
+      <span style="color:var(--red)">■ Below 50 Needs attention</span>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="tab-people">
+  <input class="search-box" id="people-search" placeholder="Search name, email, company..." oninput="renderPeople()">
+  <div class="toggle-group">
+    <button class="tog active" onclick="setPF('all',this)">All</button>
+    <button class="tog" onclick="setPF('team',this)">Team & Guests</button>
+    <button class="tog" onclick="setPF('regular',this)">Regulars (5+)</button>
+    <button class="tog" onclick="setPF('one',this)">One & Done</button>
+    <button class="tog" onclick="setPF('recent',this)">Recent (last 3)</button>
+    <button class="tog" onclick="setPF('candidate',this)">Candidates</button>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Name</th><th>Role</th><th>Company</th><th>Email</th><th>Visits</th><th>First</th><th>Last</th></tr></thead>
+      <tbody id="people-table"></tbody>
+    </table>
   </div>
 </div>
 
 <script>
-  // === PASTE YOUR VALUES HERE ===
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzoSWI2zv3k1FaloBg_QrLcJ3g5JcniOa3JaBmZe9KV-tiiaAAQrOBcs8r7Fgr2BMM6dw/exec";
-  const TOKEN = "buzz-hac-2026v1-Freeing=Ranging=Coziness=Renounce2";
+// ── SHEET URLS ──
+const SHEETS = {
+  events:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0CkfCsQ3vbeaMlShjH0u8S9oSM0alY4zO8kOIlA-UzlFwWYk0Xq8DGFiajwgdHuU34t6E4ypc-qEI/pub?gid=0&single=true&output=csv',
+  attendance: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0CkfCsQ3vbeaMlShjH0u8S9oSM0alY4zO8kOIlA-UzlFwWYk0Xq8DGFiajwgdHuU34t6E4ypc-qEI/pub?gid=1062695188&single=true&output=csv',
+  people:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0CkfCsQ3vbeaMlShjH0u8S9oSM0alY4zO8kOIlA-UzlFwWYk0Xq8DGFiajwgdHuU34t6E4ypc-qEI/pub?gid=1266811260&single=true&output=csv',
+  plenty:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0CkfCsQ3vbeaMlShjH0u8S9oSM0alY4zO8kOIlA-UzlFwWYk0Xq8DGFiajwgdHuU34t6E4ypc-qEI/pub?gid=280191950&single=true&output=csv',
+  config:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vR0CkfCsQ3vbeaMlShjH0u8S9oSM0alY4zO8kOIlA-UzlFwWYk0Xq8DGFiajwgdHuU34t6E4ypc-qEI/pub?gid=1447887717&single=true&output=csv',
+};
 
-  // === SETTINGS ===
-  const DEFAULTS_KEY = "buzz_hac_defaults_v1";
-  const CAPTURERS = [
-    { key: "Chris", cls: "o" },
-    { key: "Joe", cls: "o" },
-    { key: "James", cls: "o" },
-    { key: "Adrian", cls: "p" }
+// ── STATE ──
+let DB = { events:[], attendance:[], people:[], plenty:[] };
+let charts = {};
+let peopleFilter = 'all';
+
+// ── CSV PARSER ──
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line => {
+    const vals = [];
+    let cur = '', inQ = false;
+    for (let c of line) {
+      if (c === '"') inQ = !inQ;
+      else if (c === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/^"|"$/g,''));
+    return obj;
+  }).filter(r => Object.values(r).some(v => v));
+}
+
+async function fetchSheet(name) {
+  const r = await fetch(SHEETS[name] + '&t=' + Date.now());
+  return parseCSV(await r.text());
+}
+
+// ── LOAD ALL ──
+async function loadAll() {
+  document.getElementById('loading').style.display = 'flex';
+  try {
+    const [events, attendance, people, plenty] = await Promise.all([
+      fetchSheet('events'), fetchSheet('attendance'),
+      fetchSheet('people'), fetchSheet('plenty')
+    ]);
+    DB = { events, attendance, people, plenty };
+    destroyCharts();
+    render();
+    document.getElementById('loading').style.display = 'none';
+  } catch(e) {
+    document.getElementById('loading').innerHTML = `<div style="color:var(--red);text-align:center;padding:20px">Failed to load from Google Sheets.<br><small style="color:var(--muted)">${e.message}</small><br><br><button class="refresh-btn" onclick="loadAll()">Try again</button></div>`;
+  }
+}
+
+function destroyCharts() {
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = {};
+}
+
+// ── HELPERS ──
+function num(v) { return parseInt(v)||0; }
+
+function roleBadge(role) {
+  if (!role) return '';
+  const map = {
+    host: ['b-host','Host'],
+    ambassador: ['b-ambassador','Ambassador'],
+    sponsor: ['b-sponsor','Sponsor'],
+    buzz_plus: ['b-buzzplus','Buzz+'],
+    regional_lead: ['b-regional','Regional Lead'],
+    former_regional_lead: ['b-regional-host','Former Lead'],
+    regional_host: ['b-regional-host','Regional Host'],
+    corporate_wilson_browne: ['b-corporate','Wilson Browne'],
+  };
+  const r = map[role];
+  return r ? `<span class="badge ${r[0]}">${r[1]}</span>` : `<span class="badge b-corporate">${role}</span>`;
+}
+
+function isTeam(p) {
+  return ['host','ambassador','sponsor','buzz_plus','regional_lead','former_regional_lead','regional_host'].includes(p.role);
+}
+
+function personEvents(personId) {
+  return DB.attendance.filter(a => a.person_id === personId).map(a => a.date).sort();
+}
+
+function makeChart(id, type, data, opts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (charts[id]) charts[id].destroy();
+  const base = {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#7A7D85',font:{size:10},maxTicksLimit:14} },
+      y: { grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#7A7D85',font:{size:11}} }
+    }
+  };
+  charts[id] = new Chart(ctx, { type, data, options: mergeDeep(base, opts) });
+  return charts[id];
+}
+
+function mergeDeep(a, b) {
+  const out = {...a};
+  for (const k in b) {
+    if (b[k] && typeof b[k]==='object' && !Array.isArray(b[k])) out[k] = mergeDeep(a[k]||{}, b[k]);
+    else out[k] = b[k];
+  }
+  return out;
+}
+
+// ── MAIN RENDER ──
+function render() {
+  const events = DB.events;
+  const latest = events[events.length-1];
+  const latestDate = latest?.date;
+  const last6Dates = events.slice(-6).map(e=>e.date);
+  const last3Dates = events.slice(-3).map(e=>e.date);
+
+  document.getElementById('header-meta').innerHTML =
+    `Last event: <strong>${latest?.label||'—'}</strong> · ${num(latest?.total_booked)} booked · ${num(latest?.total_new)} first-timers`;
+
+  renderOverview(events, latest, last6Dates, last3Dates, latestDate);
+  renderFirstTimers(events, latestDate);
+  renderLoyalty(events, last6Dates, last3Dates);
+  renderPlenty(events);
+  renderHealth(events);
+  renderPeople();
+}
+
+// ── OVERVIEW ──
+function renderOverview(events, latest, last6Dates, last3Dates, latestDate) {
+  const people = DB.people;
+  const nonTeam = people.filter(p => !isTeam(p));
+  const regulars = nonTeam.filter(p => num(p.total_attended)>=5);
+  const onceDone = nonTeam.filter(p => num(p.total_attended)===1);
+
+  document.getElementById('kpi-overview').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Last Event</div><div class="kpi-value c-buzz">${num(latest?.total_booked)}</div><div class="kpi-sub">${latest?.label} booked</div></div>
+    <div class="kpi"><div class="kpi-label">First-Timers</div><div class="kpi-value c-green">${num(latest?.total_new)}</div><div class="kpi-sub">${latest?.total_booked?Math.round(num(latest.total_new)/num(latest.total_booked)*100):0}% of room</div></div>
+    <div class="kpi"><div class="kpi-label">Returning</div><div class="kpi-value">${num(latest?.total_returning)}</div><div class="kpi-sub">familiar faces</div></div>
+    <div class="kpi"><div class="kpi-label">Unique People</div><div class="kpi-value">${people.length}</div><div class="kpi-sub">all time</div></div>
+    <div class="kpi"><div class="kpi-label">Loyal Core</div><div class="kpi-value c-buzz">${regulars.length}</div><div class="kpi-sub">5+ visits</div></div>
+    <div class="kpi"><div class="kpi-label">One & Done</div><div class="kpi-value c-amber">${onceDone.length}</div><div class="kpi-sub">${Math.round(onceDone.length/Math.max(nonTeam.length,1)*100)}% of visitors</div></div>
+  `;
+
+  // History chart
+  makeChart('ch-history','bar',{
+    labels: events.map(e=>e.label),
+    datasets:[
+      {label:'Returning',data:events.map(e=>num(e.total_returning)),backgroundColor:'rgba(232,83,26,0.65)',stack:'a'},
+      {label:'New',data:events.map(e=>num(e.total_new)),backgroundColor:'rgba(74,222,128,0.75)',stack:'a'},
+    ]
+  },{plugins:{legend:{display:true,labels:{color:'#7A7D85',font:{size:11}}}},scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7A7D85',font:{size:10},maxTicksLimit:14}},y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7A7D85',font:{size:11}}}}});
+
+  // Rolling 12
+  const r12 = events.slice(-12);
+  makeChart('ch-rolling','line',{
+    labels:r12.map(e=>e.label),
+    datasets:[
+      {label:'New',data:r12.map(e=>num(e.total_new)),borderColor:'#4ADE80',backgroundColor:'rgba(74,222,128,0.08)',tension:0.4,fill:true,pointBackgroundColor:'#4ADE80',pointRadius:4},
+      {label:'Returning',data:r12.map(e=>num(e.total_returning)),borderColor:'#E8531A',backgroundColor:'rgba(232,83,26,0.06)',tension:0.4,fill:true,pointBackgroundColor:'#E8531A',pointRadius:4},
+    ]
+  },{plugins:{legend:{display:true,labels:{color:'#7A7D85',font:{size:11}}}}});
+
+  // Recent table
+  document.getElementById('recent-table').innerHTML = events.slice(-8).reverse().map(e=>`
+    <tr><td>${e.label}</td><td><strong>${num(e.total_booked)}</strong></td>
+    <td><span class="c-green">${num(e.total_new)}</span></td>
+    <td>${num(e.total_returning)}</td>
+    <td>${num(e.total_booked)?Math.round(num(e.total_new)/num(e.total_booked)*100):0}%</td></tr>`).join('');
+
+  // Alerts
+  const alerts = [];
+  // First-timers to follow up
+  const ftCount = num(latest?.total_new);
+  if (ftCount > 0) alerts.push({cls:'green',icon:'🟢',text:`<strong>${ftCount} first-timers</strong> from ${latest.label} need a follow-up within 48 hours. See the First-Timers tab for the full list.`});
+  // Lapsed
+  const lapsed = DB.people.filter(p => !isTeam(p) && num(p.total_attended)>=3 && !last3Dates.some(d => DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)));
+  if (lapsed.length) alerts.push({cls:'amber',icon:'🟡',text:`<strong>${lapsed.length} regular attendees</strong> haven't been seen in 3+ months. Worth a check-in — see Loyalty tab.`});
+  // Phil Knott
+  const phil = DB.people.find(p=>p.role==='buzz_plus');
+  if (phil) {
+    const philRecent = last6Dates.filter(d=>DB.attendance.some(a=>a.person_id===phil.person_id&&a.date===d)).length;
+    if (philRecent < 3) alerts.push({cls:'blue',icon:'🔵',text:`<strong>${phil.name_first} ${phil.name_last}</strong> (Buzz Plus) has attended ${philRecent}/6 recent events. Worth a touchpoint.`});
+  }
+  // One & done rate
+  const odRate = Math.round(onceDone.length/Math.max(nonTeam.length,1)*100);
+  if (odRate > 45) alerts.push({cls:'amber',icon:'⚠️',text:`<strong>${odRate}% of all visitors came once and never returned.</strong> First-timer follow-up is your highest-leverage action.`});
+
+  document.getElementById('alerts').innerHTML = alerts.map(a=>`
+    <div class="alert ${a.cls}"><div class="alert-icon">${a.icon}</div><div class="alert-text">${a.text}</div></div>`).join('') || '<div class="empty">No urgent alerts.</div>';
+}
+
+// ── FIRST-TIMERS ──
+function renderFirstTimers(events, latestDate) {
+  const latest = events[events.length-1];
+  const ft = DB.attendance.filter(a => a.date === latestDate && DB.people.find(p=>p.person_id===a.person_id&&num(p.total_attended)===1));
+  const rows = ft.map(a=>`<tr>
+    <td><strong>${a.name}</strong></td>
+    <td style="font-size:12px;color:var(--muted)">${a.company||'—'}</td>
+    <td style="font-size:12px">${a.email||'—'}</td>
+    <td style="font-size:12px">${a.mobile||'—'}</td>
+  </tr>`).join('');
+
+  document.getElementById('ft-list').innerHTML = `
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px"><strong style="color:var(--green)">${ft.length} people</strong> attended for the first time at the ${latest?.label} event. Priority follow-ups.</p>
+    <table><thead><tr><th>Name</th><th>Company</th><th>Email</th><th>Mobile</th></tr></thead><tbody>${rows||'<tr><td colspan="4" class="empty">No data</td></tr>'}</tbody></table>`;
+
+  makeChart('ch-ft','bar',{
+    labels:events.map(e=>e.label),
+    datasets:[{label:'First-Timers',data:events.map(e=>num(e.total_new)),backgroundColor:'rgba(74,222,128,0.7)',borderRadius:3}]
+  },{plugins:{legend:{display:false}}});
+}
+
+// ── LOYALTY ──
+function renderLoyalty(events, last6Dates, last3Dates) {
+  const people = DB.people.filter(p=>!isTeam(p));
+  const sorted = [...people].sort((a,b)=>num(b.total_attended)-num(a.total_attended));
+  const regulars = sorted.filter(p=>num(p.total_attended)>=5);
+
+  // Top 15
+  document.getElementById('top-table').innerHTML = sorted.slice(0,15).map((p,i)=>{
+    const l6 = last6Dates.filter(d=>DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)).length;
+    const dots = last6Dates.map(d=>{
+      const hit = DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d);
+      const recent = hit && last3Dates.includes(d);
+      return `<div class="sdot ${hit?(recent?'hit-green':'hit'):''}"></div>`;
+    }).join('');
+    return `<tr><td style="color:var(--muted)">${i+1}</td><td><strong>${p.name_first} ${p.name_last}</strong></td>
+      <td>${roleBadge(p.role)}</td><td><strong class="c-buzz">${p.total_attended}</strong></td>
+      <td><div class="streak-bar">${dots}</div></td></tr>`;
+  }).join('');
+
+  // Streaks
+  const streakers = people.filter(p=>{
+    const l6 = last6Dates.filter(d=>DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)).length;
+    return l6>=4;
+  }).sort((a,b)=>{
+    const la = last6Dates.filter(d=>DB.attendance.some(a=>a.person_id===a.person_id&&a.date===d)).length;
+    const lb = last6Dates.filter(d=>DB.attendance.some(a=>a.person_id===b.person_id&&a.date===d)).length;
+    return lb-la;
+  });
+  document.getElementById('streak-table').innerHTML = streakers.map(p=>{
+    const l6 = last6Dates.filter(d=>DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)).length;
+    const dots = last6Dates.map(d=>`<div class="sdot ${DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)?'hit':''}"></div>`).join('');
+    return `<tr><td><strong>${p.name_first} ${p.name_last}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${p.company||'—'}</td>
+      <td><div class="streak-bar">${dots}<span style="margin-left:6px;color:var(--buzz);font-weight:600">${l6}/6</span></div></td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty">No streaks yet</td></tr>';
+
+  // Lapsed
+  const lapsed = people.filter(p=>num(p.total_attended)>=3&&!last3Dates.some(d=>DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)))
+    .sort((a,b)=>num(b.total_attended)-num(a.total_attended)).slice(0,12);
+  document.getElementById('lapsed-table').innerHTML = lapsed.map(p=>{
+    const allDates = DB.attendance.filter(a=>a.person_id===p.person_id).map(a=>a.date).sort();
+    const lastDate = allDates[allDates.length-1];
+    const lastLabel = DB.events.find(e=>e.date===lastDate)?.label||lastDate?.slice(0,7)||'—';
+    return `<tr><td><strong>${p.name_first} ${p.name_last}</strong></td>
+      <td style="font-size:12px">${p.email||'—'}</td>
+      <td><span class="badge b-lapsed">${p.total_attended}×</span></td>
+      <td style="color:var(--muted);font-size:12px">${lastLabel}</td></tr>`;
+  }).join('') || '<tr><td colspan="4" class="empty">No lapsed regulars — great sign.</td></tr>';
+
+  // Candidates (8+ visits, no role)
+  const candidates = people.filter(p=>!p.role&&num(p.total_attended)>=8)
+    .sort((a,b)=>num(b.total_attended)-num(a.total_attended)).slice(0,10);
+  document.getElementById('candidate-table').innerHTML = candidates.map(p=>{
+    const firstLabel = DB.events.find(e=>e.event_id===p.first_event_id)?.label||'—';
+    return `<tr><td><strong>${p.name_first} ${p.name_last}</strong> <span class="badge b-candidate">Candidate</span></td>
+      <td style="font-size:12px;color:var(--muted)">${p.company||'—'}</td>
+      <td><strong class="c-buzz">${p.total_attended}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${firstLabel}</td></tr>`;
+  }).join('') || '<tr><td colspan="4" class="empty">No candidates identified</td></tr>';
+
+  // Loyalty KPIs
+  const onceDone = people.filter(p=>num(p.total_attended)===1);
+  document.getElementById('kpi-loyalty').innerHTML = `
+    <div class="kpi"><div class="kpi-label">Loyal Core (5+)</div><div class="kpi-value c-buzz">${regulars.length}</div><div class="kpi-sub">all time</div></div>
+    <div class="kpi"><div class="kpi-label">Hot Streak (4+/6)</div><div class="kpi-value c-green">${streakers.length}</div><div class="kpi-sub">last 6 events</div></div>
+    <div class="kpi"><div class="kpi-label">Lapsed (3+ visits)</div><div class="kpi-value c-amber">${lapsed.length}</div><div class="kpi-sub">gone 3 months</div></div>
+    <div class="kpi"><div class="kpi-label">Candidates</div><div class="kpi-value c-amber">${candidates.length}</div><div class="kpi-sub">ambassador/sponsor</div></div>
+    <div class="kpi"><div class="kpi-label">One & Done</div><div class="kpi-value">${onceDone.length}</div><div class="kpi-sub">${Math.round(onceDone.length/Math.max(people.length,1)*100)}%</div></div>
+  `;
+}
+
+// ── PLENTY ──
+function renderPlenty(events) {
+  const plenty = DB.plenty;
+  const latest = events[events.length-1];
+  document.getElementById('plenty-event-title').textContent = `${latest?.label||'Next'} — Booking Tracker`;
+
+  const latestEvId = latest?.event_id;
+  const latestPlenty = plenty.filter(p=>p.event_id===latestEvId);
+
+  const checkpoints = [
+    {key:'D-28',days:-28,label:'-4 Weeks'},
+    {key:'D-21',days:-21,label:'-3 Weeks'},
+    {key:'D-14',days:-14,label:'-2 Weeks'},
+    {key:'D-7',days:-7,label:'-1 Week'},
+    {key:'D-6',days:-6,label:'Tue'},
+    {key:'D-5',days:-5,label:'Wed'},
+    {key:'D-4',days:-4,label:'Thu'},
+    {key:'D-3',days:-3,label:'Fri'},
+    {key:'D-2',days:-2,label:'Sat'},
+    {key:'D-1',days:-1,label:'Mon'},
+    {key:'event_day',days:0,label:'On Day'},
   ];
-  const LISTS = { buzz: "New to Buzz", mhbuzz: "New to MHBuzz" };
 
-  let activeTab = "buzz";
-  let capturedBy = "";
-  let rowsCache = [];
-  let modalRow = null;
-  let paymentTypeLocal = ""; // for pill highlighting
+  // Find most recent checkpoint with data
+  let lastKnownT = null, lastKnownCheckpoint = null;
+  const cpHtml = checkpoints.map(cp=>{
+    const row = latestPlenty.find(p=>p.checkpoint===cp.key);
+    const t = row?.total_booked ? parseInt(row.total_booked) : null;
+    if (t) { lastKnownT = t; lastKnownCheckpoint = cp; }
+    const isCurrent = (t && !checkpoints.slice(checkpoints.indexOf(cp)+1).some(c2=>latestPlenty.find(p=>p.checkpoint===c2.key)?.total_booked));
+    return `<div class="checkpoint ${isCurrent?'current':''}">
+      <div class="cp-label">${cp.label}</div>
+      <div class="cp-value ${t?'':'empty'}">${t||'·'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('plenty-checkpoints').innerHTML = cpHtml;
 
-  const els = {
-    month: document.getElementById("month"),
-    quickFilter: document.getElementById("quickFilter"),
-    who: document.getElementById("who"),
-    whoLabel: document.getElementById("whoLabel"),
-    name: document.getElementById("name"),
-    business: document.getElementById("business"),
-    reasonHere: document.getElementById("reasonHere"),
-    lookingFor: document.getElementById("lookingFor"),
-    foundOut: document.getElementById("foundOut"),
-    otherNetworking: document.getElementById("otherNetworking"),
-
-    btnNewBuzz: document.getElementById("btnNewBuzz"),
-    btnNewMHBuzz: document.getElementById("btnNewMHBuzz"),
-
-    tabBuzz: document.getElementById("tabBuzz"),
-    tabMHBuzz: document.getElementById("tabMHBuzz"),
-    tbody: document.getElementById("tbody"),
-    search: document.getElementById("search"),
-
-    refreshBtn: document.getElementById("refreshBtn"),
-    saveDefaultsBtn: document.getElementById("saveDefaultsBtn"),
-    clearDefaultsBtn: document.getElementById("clearDefaultsBtn"),
-
-    errBox: document.getElementById("errBox"),
-
-    // modal
-    modalBack: document.getElementById("modalBack"),
-    closeModal: document.getElementById("closeModal"),
-    modalTitle: document.getElementById("modalTitle"),
-    modalMeta: document.getElementById("modalMeta"),
-    tSticker: document.getElementById("tSticker"),
-    tAppOn: document.getElementById("tAppOn"),
-    tHelp: document.getElementById("tHelp"),
-    tBooklet: document.getElementById("tBooklet"),
-    tAddedOnApp: document.getElementById("tAddedOnApp"),
-
-    payEventbrite: document.getElementById("payEventbrite"),
-    payPaypal: document.getElementById("payPaypal"),
-    tPaid: document.getElementById("tPaid"),
-    tPaypalReceipt: document.getElementById("tPaypalReceipt"),
-
-    mReasonHere: document.getElementById("mReasonHere"),
-    mLookingFor: document.getElementById("mLookingFor"),
-    mFoundOut: document.getElementById("mFoundOut"),
-    mOtherNetworking: document.getElementById("mOtherNetworking"),
-
-    saveModal: document.getElementById("saveModal"),
-    modalErr: document.getElementById("modalErr"),
-  };
-
-  function nowISO(){ return new Date().toISOString(); }
-  function clean(s){ return (s || "").trim(); }
-  function showErr(el, msg){ el.style.display = msg ? "block" : "none"; el.textContent = msg || ""; }
-  function makeId(){ return "p_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16); }
-  function esc(v){
-    return String(v ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-  function escAttr(v){ return String(v ?? "").replaceAll("'","&#039;").replaceAll('"',"&quot;"); }
-  function toBool(v){
-    if (v === true) return true;
-    const s = String(v).toLowerCase().trim();
-    return s === "true" || s === "yes" || s === "1";
-  }
-
-  function saveDefaults(){
-    const month = clean(els.month.value);
-    const data = { month, capturedBy };
-    localStorage.setItem(DEFAULTS_KEY, JSON.stringify(data));
-  }
-  function loadDefaults(){
-    try{
-      const raw = localStorage.getItem(DEFAULTS_KEY);
-      if(!raw) return;
-      const data = JSON.parse(raw);
-      if(data.month) els.month.value = data.month;
-      if(data.capturedBy) capturedBy = data.capturedBy;
-    }catch{}
-  }
-  function clearDefaults(){
-    localStorage.removeItem(DEFAULTS_KEY);
-    els.month.value = "";
-    capturedBy = "";
-    renderCapturers();
-  }
-
-  function renderCapturers(){
-    els.who.innerHTML = CAPTURERS.map(p => {
-      const active = (p.key === capturedBy) ? "active" : "";
-      return `<button class="${p.cls} ${active}" onclick="setCapturedBy('${p.key}')">${p.key}</button>`;
-    }).join("");
-    els.whoLabel.textContent = capturedBy ? `Current: ${capturedBy}` : "Current: (not selected)";
-  }
-  window.setCapturedBy = function(name){
-    capturedBy = name;
-    renderCapturers();
-  };
-
-  function setTab(tab){
-    activeTab = tab;
-    els.tabBuzz.classList.toggle("active", tab === "buzz");
-    els.tabMHBuzz.classList.toggle("active", tab === "mhbuzz");
-    loadRows();
-  }
-  function currentListLabel(){
-    return activeTab === "buzz" ? LISTS.buzz : LISTS.mhbuzz;
-  }
-
-  async function apiGetRows(month, listLabel){
-    const url = new URL(WEB_APP_URL);
-    if (month) url.searchParams.set("month", month);
-    if (listLabel) url.searchParams.set("list", listLabel);
-    const res = await fetch(url.toString(), { method: "GET" });
-    return await res.json();
-  }
-  async function apiPost(payload){
-    const res = await fetch(WEB_APP_URL, {
-      method: "POST",
-      headers: { "Content-Type":"text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+  // Projection based on historical ratios
+  // Compute average final/checkpoint ratio across past events
+  let ratios = [];
+  if (lastKnownCheckpoint && lastKnownT) {
+    const cpKey = lastKnownCheckpoint.key;
+    events.slice(0,-1).forEach(ev=>{
+      const evPlenty = plenty.filter(p=>p.event_id===ev.event_id);
+      const cpRow = evPlenty.find(p=>p.checkpoint===cpKey);
+      const finalRow = evPlenty.find(p=>p.checkpoint==='event_day') || evPlenty.slice(-1)[0];
+      const cpT = cpRow?.total_booked ? parseInt(cpRow.total_booked) : null;
+      const finalT = parseInt(ev.total_booked)||null;
+      if (cpT && finalT && finalT > cpT) ratios.push(finalT/cpT);
     });
-    return await res.json();
   }
 
-  function passesQuickFilter(r){
-    const f = els.quickFilter.value;
+  if (ratios.length && lastKnownT) {
+    ratios.sort((a,b)=>a-b);
+    const med = ratios[Math.floor(ratios.length/2)];
+    const low = ratios[Math.floor(ratios.length*0.25)];
+    const high = ratios[Math.floor(ratios.length*0.75)];
+    const proj = Math.round(lastKnownT * med);
+    const projLow = Math.round(lastKnownT * low);
+    const projHigh = Math.round(lastKnownT * high);
 
-    const paymentTaken = toBool(r.payment_taken);
-    const pType = String(r.payment_type || "");
+    document.getElementById('proj-value').textContent = proj;
+    document.getElementById('proj-range').textContent = `Range ${projLow}–${projHigh} based on ${ratios.length} comparable months`;
 
-    if(f === "unpaid"){
-      return paymentTaken === false; // blank/false = unpaid
-    }
-    if(f === "paypal_needs_receipt"){
-      const isPayPal = pType.toLowerCase().includes("paypal");
-      const receipt = toBool(r.paypal_receipt_sent);
-      return isPayPal && !receipt;
-    }
-    if(f === "not_on_app"){
-      return !toBool(r.added_on_buzz_app) && !toBool(r.app_fully_on);
-    }
-    return true;
+    const avg = events.slice(-6).reduce((s,e)=>s+num(e.total_booked),0)/6;
+    let tlClass='tl-green', tlText='On track 🟢';
+    if (proj < avg*0.8) { tlClass='tl-red'; tlText='Below average — push marketing 🔴'; }
+    else if (proj < avg*0.9) { tlClass='tl-amber'; tlText='Slightly low — watch this 🟡'; }
+    document.getElementById('proj-traffic').innerHTML = `<div class="traffic-light ${tlClass}">${tlText}</div>`;
+  } else {
+    document.getElementById('proj-value').textContent = '—';
+    document.getElementById('proj-range').textContent = 'Not enough checkpoint data yet';
+    document.getElementById('proj-traffic').innerHTML = '';
   }
 
-  async function loadRows(){
-    showErr(els.errBox, "");
-    const month = clean(els.month.value);
-    const list = currentListLabel();
-
-    try{
-      const data = await apiGetRows(month, list);
-      if(!data.ok) throw new Error(data.error || "Failed to load");
-      rowsCache = (data.rows || []).filter(passesQuickFilter);
-      renderTable();
-    }catch(err){
-      showErr(els.errBox, `Load error: ${String(err)}`);
-    }
-  }
-
-  function renderTable(){
-    const q = clean(els.search.value).toLowerCase();
-
-    const list = rowsCache
-      .filter(r => {
-        if(!q) return true;
-        const hay = `${r.name||""} ${r.business||""}`.toLowerCase();
-        return hay.includes(q);
-      })
-      .slice()
-      .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
-
-    els.tbody.innerHTML = list.map(r => {
-      const quick = [];
-      if (toBool(r.sticker_given)) quick.push("Sticker");
-      if (toBool(r.booklet_101_issued)) quick.push("101");
-      if (toBool(r.added_on_buzz_app) || toBool(r.app_fully_on)) quick.push("On app");
-      if (toBool(r.app_needs_help)) quick.push("App help");
-
-      const pType = String(r.payment_type || "");
-      const pTaken = toBool(r.payment_taken) ? "taken" : "not taken";
-      const receipt = toBool(r.paypal_receipt_sent) ? "receipt sent" : "receipt not sent";
-
-      let payText = "-";
-      if(pType){
-        payText = `${pType} • ${pTaken}`;
-        if(pType.toLowerCase().includes("paypal")) payText += ` • ${receipt}`;
-      } else {
-        payText = pTaken === "taken" ? `Payment taken` : `Unpaid`;
-      }
-
-      return `
-        <tr>
-          <td><strong>${esc(r.name)}</strong></td>
-          <td>${r.business ? esc(r.business) : `<span class="small">-</span>`}</td>
-          <td>${esc(r.month||"")}</td>
-          <td>${esc(r.captured_by||"")}</td>
-          <td class="small">${esc(payText)}</td>
-          <td class="small">${quick.length ? esc(quick.join(" • ")) : "-"}</td>
-          <td><button class="btn link" onclick="openChecklist('${escAttr(r.id)}')">Checklist</button></td>
-        </tr>
-      `;
-    }).join("") || `<tr><td colspan="7" class="small">No rows found.</td></tr>`;
-  }
-
-  async function addRow(listLabel){
-    showErr(els.errBox, "");
-
-    const month = clean(els.month.value);
-    const name = clean(els.name.value);
-    const business = clean(els.business.value);
-
-    if(!month){ showErr(els.errBox, "Buzz month is required (e.g. February 2026)."); return; }
-    if(!capturedBy){ showErr(els.errBox, "Select who is capturing (Chris/Joe/James/Adrian)."); return; }
-    if(!name){ showErr(els.errBox, "Name is required."); return; }
-
-    // Map to your exact schema (including spaced headers)
-    const row = {
-      id: makeId(),
-      createdAt: nowISO(),
-      month,
-      captured_by: capturedBy,
-      list: listLabel,
-      name,
-      business,
-
-      "Reason here": clean(els.reasonHere.value),
-      "Looking for": clean(els.lookingFor.value),
-
-      sticker_given: false,
-      app_fully_on: false,
-      app_needs_help: false,
-      booklet_101_issued: false,
-      found_out: clean(els.foundOut.value),
-      other_networking: clean(els.otherNetworking.value),
-
-      payment_type: "",
-      payment_taken: false,
-      paypal_receipt_sent: false,
-      added_on_buzz_app: false
+  // Historical T curves chart
+  const recentEvents = events.slice(-8);
+  const datasets = recentEvents.map((ev,i)=>{
+    const evPlenty = plenty.filter(p=>p.event_id===ev.event_id);
+    const alpha = 0.3 + (i/recentEvents.length)*0.7;
+    const isLatest = ev.event_id===latestEvId;
+    return {
+      label: ev.label,
+      data: checkpoints.slice(0,-1).map(cp=>{
+        const row = evPlenty.find(p=>p.checkpoint===cp.key);
+        return row?.total_booked ? parseInt(row.total_booked) : null;
+      }),
+      borderColor: isLatest ? '#E8531A' : `rgba(120,130,145,${alpha})`,
+      borderWidth: isLatest ? 2.5 : 1,
+      tension: 0.3,
+      spanGaps: true,
+      pointRadius: isLatest ? 4 : 2,
     };
+  });
 
-    try{
-      const data = await apiPost({ token: TOKEN, action: "add", row });
-      if(!data.ok) throw new Error(data.error || "Add failed");
+  makeChart('ch-plenty','line',{
+    labels: checkpoints.slice(0,-1).map(c=>c.label),
+    datasets
+  },{plugins:{legend:{display:true,labels:{color:'#7A7D85',font:{size:10},boxWidth:12}}}});
+}
 
-      // Save defaults so next add is quicker
-      saveDefaults();
+// ── HEALTH ──
+function calcHealth(idx) {
+  const events = DB.events;
+  if (idx<1) return null;
+  const ev=events[idx], prev=events[idx-1];
+  const acqRaw = num(ev.total_new)/Math.max(num(ev.total_booked),1);
+  const retRaw = num(ev.total_returning)/Math.max(num(prev.total_booked),1);
+  const prior3 = events.slice(Math.max(0,idx-4),idx-1);
+  const priorAvg = prior3.reduce((s,e)=>s+num(e.total_booked),0)/Math.max(prior3.length,1);
+  const momRaw = priorAvg>0 ? num(ev.total_booked)/priorAvg : 1;
+  const acq = Math.min(100, acqRaw*250);
+  const ret = Math.min(100, retRaw*120);
+  const mom = Math.min(100, momRaw*80+20);
+  return { total:Math.round(acq*0.35+ret*0.40+mom*0.25), acq:Math.round(acq), ret:Math.round(ret), mom:Math.round(mom), acqRaw, retRaw, momRaw };
+}
 
-      // Clear name for quick entry
-      els.name.value = "";
-      els.name.focus();
+function scoreStyle(s) {
+  if(s>=80) return ['#4ADE80','Thriving'];
+  if(s>=65) return ['#86EFAC','Healthy'];
+  if(s>=50) return ['#FBBF24','Steady'];
+  return ['#F87171','Needs attention'];
+}
 
-      // Switch tab to match list, then reload
-      setTab(listLabel === "New to Buzz" ? "buzz" : "mhbuzz");
-    }catch(err){
-      showErr(els.errBox, `Add error: ${String(err)}`);
-    }
-  }
+function renderHealth(events) {
+  events = DB.events;
+  const latest = calcHealth(events.length-1);
+  if (!latest) return;
+  const [col, label] = scoreStyle(latest.total);
+  document.getElementById('health-score').style.color = col;
+  document.getElementById('health-score').textContent = latest.total;
+  document.getElementById('health-label').textContent = `${label} — ${events[events.length-1].label}`;
+  document.getElementById('health-breakdown').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px"><span>Acquisition <span style="color:var(--muted)">(35%)</span></span><span style="color:var(--green)">${latest.acq}/100 <span style="color:var(--muted)">${Math.round(latest.acqRaw*100)}% new</span></span></div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px"><span>Retention <span style="color:var(--muted)">(40%)</span></span><span style="color:var(--buzz)">${latest.ret}/100 <span style="color:var(--muted)">${Math.round(latest.retRaw*100)}% returned</span></span></div>
+    <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:12px"><span>Momentum <span style="color:var(--muted)">(25%)</span></span><span style="color:var(--blue)">${latest.mom}/100 <span style="color:var(--muted)">${latest.momRaw>=1?'+':''}${Math.round((latest.momRaw-1)*100)}% vs avg</span></span></div>`;
 
-  function setPaymentPills(type){
-    paymentTypeLocal = type;
-    els.payEventbrite.classList.toggle("active", type === "Eventbrite");
-    els.payPaypal.classList.toggle("active", type === "PayPal");
-  }
+  const scores = events.map((_,i)=>i===0?null:calcHealth(i)?.total??null);
+  makeChart('ch-health','line',{
+    labels:events.map(e=>e.label),
+    datasets:[{label:'Health Score',data:scores,borderColor:'#E8531A',backgroundColor:'rgba(232,83,26,0.08)',tension:0.4,fill:true,pointBackgroundColor:'#E8531A',pointRadius:3,spanGaps:true}]
+  },{scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7A7D85',font:{size:10},maxTicksLimit:14}},y:{min:0,max:100,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7A7D85',font:{size:11}}}}});
+}
 
-  window.openChecklist = function(id){
-    const row = rowsCache.find(r => String(r.id) === String(id));
-    if(!row) return;
+// ── PEOPLE ──
+function setPF(f, btn) {
+  peopleFilter=f;
+  document.querySelectorAll('.tog').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPeople();
+}
 
-    modalRow = row;
-    showErr(els.modalErr, "");
+function renderPeople() {
+  const q = (document.getElementById('people-search')?.value||'').toLowerCase();
+  const events = DB.events;
+  const last3Dates = events.slice(-3).map(e=>e.date);
+  let people = [...DB.people];
 
-    els.modalTitle.textContent = `Checklist - ${row.name || ""}`;
-    els.modalMeta.textContent = `${row.list || ""} • ${row.month || ""} • by ${row.captured_by || ""}`;
+  if (peopleFilter==='team') people = people.filter(p=>isTeam(p)||p.role==='corporate_wilson_browne');
+  if (peopleFilter==='regular') people = people.filter(p=>!isTeam(p)&&num(p.total_attended)>=5);
+  if (peopleFilter==='one') people = people.filter(p=>num(p.total_attended)===1&&!isTeam(p));
+  if (peopleFilter==='recent') people = people.filter(p=>last3Dates.some(d=>DB.attendance.some(a=>a.person_id===p.person_id&&a.date===d)));
+  if (peopleFilter==='candidate') people = people.filter(p=>!p.role&&num(p.total_attended)>=8);
 
-    els.tSticker.checked = toBool(row.sticker_given);
-    els.tAppOn.checked = toBool(row.app_fully_on);
-    els.tHelp.checked = toBool(row.app_needs_help);
-    els.tBooklet.checked = toBool(row.booklet_101_issued);
-    els.tAddedOnApp.checked = toBool(row.added_on_buzz_app);
+  if(q) people = people.filter(p=>`${p.name_first} ${p.name_last} ${p.email} ${p.company}`.toLowerCase().includes(q));
+  people.sort((a,b)=>num(b.total_attended)-num(a.total_attended));
 
-    const pType = String(row.payment_type || "");
-    setPaymentPills(pType === "Eventbrite" ? "Eventbrite" : (pType === "PayPal" ? "PayPal" : ""));
-    els.tPaid.checked = toBool(row.payment_taken);
-    els.tPaypalReceipt.checked = toBool(row.paypal_receipt_sent);
+  document.getElementById('people-table').innerHTML = people.slice(0,200).map(p=>{
+    const allDates = DB.attendance.filter(a=>a.person_id===p.person_id).map(a=>a.date).sort();
+    const firstLabel = DB.events.find(e=>e.date===allDates[0])?.label||'—';
+    const lastLabel = DB.events.find(e=>e.date===allDates[allDates.length-1])?.label||'—';
+    return `<tr>
+      <td><strong>${p.name_first} ${p.name_last}</strong></td>
+      <td>${roleBadge(p.role)}</td>
+      <td style="font-size:12px;color:var(--muted)">${p.company||'—'}</td>
+      <td style="font-size:12px">${p.email||'—'}</td>
+      <td><strong class="c-buzz">${p.total_attended}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${firstLabel}</td>
+      <td style="font-size:12px;color:var(--muted)">${lastLabel}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty">No results</td></tr>';
+}
 
-    // Extras - exact headers
-    els.mReasonHere.value = row["Reason here"] || "";
-    els.mLookingFor.value = row["Looking for"] || "";
-    els.mFoundOut.value = row.found_out || "";
-    els.mOtherNetworking.value = row.other_networking || "";
+// ── TAB SWITCHING ──
+function showTab(name, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
 
-    els.modalBack.style.display = "flex";
-  };
+// ── PLENTY SAVE (guide) ──
+function savePlentyEntry() {
+  const t = document.getElementById('inp-t').value;
+  const l = document.getElementById('inp-l').value;
+  const e = document.getElementById('inp-e').value;
+  const wb = document.getElementById('inp-wb').value;
+  if (!t) { alert('Please enter at least a Total Booked (T) value'); return; }
+  const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  alert(`Add this row to your Plenty tab in Google Sheets:\n\nEvent ID: (current event)\nDate: ${today}\nCheckpoint: today\nTotal Booked: ${t}\nLinkedIn: ${l||''}\nEventbrite: ${e||''}\nWilson Browne: ${wb||''}\n\nThen click Refresh in the dashboard.`);
+}
 
-  async function saveModal(){
-    if(!modalRow) return;
-
-    const patch = {
-      sticker_given: els.tSticker.checked,
-      app_fully_on: els.tAppOn.checked,
-      app_needs_help: els.tHelp.checked,
-      booklet_101_issued: els.tBooklet.checked,
-      added_on_buzz_app: els.tAddedOnApp.checked,
-
-      payment_type: paymentTypeLocal || "",
-      payment_taken: els.tPaid.checked,
-      paypal_receipt_sent: els.tPaypalReceipt.checked,
-
-      "Reason here": els.mReasonHere.value || "",
-      "Looking for": els.mLookingFor.value || "",
-      found_out: els.mFoundOut.value || "",
-      other_networking: els.mOtherNetworking.value || ""
-    };
-
-    try{
-      const data = await apiPost({ token: TOKEN, action: "update", id: modalRow.id, patch });
-      if(!data.ok) throw new Error(data.error || "Update failed");
-      closeModal();
-      await loadRows();
-    }catch(err){
-      showErr(els.modalErr, `Save error: ${String(err)}`);
-    }
-  }
-
-  function closeModal(){
-    els.modalBack.style.display = "none";
-    modalRow = null;
-  }
-
-  // Payment pill buttons
-  els.payEventbrite.addEventListener("click", () => setPaymentPills("Eventbrite"));
-  els.payPaypal.addEventListener("click", () => setPaymentPills("PayPal"));
-
-  // Wire up events
-  els.tabBuzz.addEventListener("click", () => setTab("buzz"));
-  els.tabMHBuzz.addEventListener("click", () => setTab("mhbuzz"));
-  els.search.addEventListener("input", renderTable);
-  els.quickFilter.addEventListener("change", loadRows);
-
-  els.refreshBtn.addEventListener("click", loadRows);
-  els.saveDefaultsBtn.addEventListener("click", () => { saveDefaults(); showErr(els.errBox, "Saved defaults on this device."); setTimeout(()=>showErr(els.errBox,""),1200); });
-  els.clearDefaultsBtn.addEventListener("click", () => { clearDefaults(); showErr(els.errBox, "Cleared saved defaults on this device."); setTimeout(()=>showErr(els.errBox,""),1200); loadRows(); });
-
-  els.btnNewBuzz.addEventListener("click", () => addRow("New to Buzz"));
-  els.btnNewMHBuzz.addEventListener("click", () => addRow("New to MHBuzz"));
-
-  els.closeModal.addEventListener("click", closeModal);
-  els.modalBack.addEventListener("click", (e) => { if(e.target === els.modalBack) closeModal(); });
-  els.saveModal.addEventListener("click", saveModal);
-
-  // Boot
-  loadDefaults();
-  renderCapturers();
-  setTab("buzz");
+// ── INIT ──
+loadAll();
 </script>
 </body>
 </html>
